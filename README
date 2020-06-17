@@ -1,0 +1,43 @@
+'chk-followup.py' finds upstream commits that fixes or mentions specific
+commits and check whether the followup changes in the upstream are already in
+your downstream tree.
+
+Suppose that you are developing your linux kernel on a branch based on a v5.4
+stable release.  You periodically rebase your work on latest 5.4 stable release
+to ensure your kernel is safe.  But, you also back-ported some commits from
+v5.5.  Now the periodic rebasing cannot ensure you have all necessary fixes in
+your kernel, as the fixes for the back-ported commits will land on only v5.5 or
+later stable releases.  'chk-followup.py' is the tool for such cases.
+
+Getting Started
+===============
+
+Let's suppose your kernel repo is at '$HOME/linux' and tracking the mainline
+tree with a remote name 'mainline'.  Your working branch is named 'hack' and
+based on v5.4.42.
+
+```
+$ chk-followups.py --repo $HOME/linux \
+	--downstream v5.4.42..hack --upstream v5.5..mainline/master
+```
+
+Above command will do the check for all commits in 'v5.4.42..hack' against all
+commits in 'v5.5..mainline/master'.
+
+Output Format
+=============
+
+The output will classify each of the downstream commits with a combination of
+below tags:
+
+ - downstream_only: The commit is in the downstream only.  Maybe you made this
+   change on your own.
+ - no_followup: The upstream has no commits for the commit.
+ - fixed: There are upstream commits fixing the commit.  This is classified by
+   checking the 'Fixes' tag.
+ - mentioned: There are upstream commits mentioning the commit.  This could be
+   non-fixes (e.g., merge), but would be worth to check.
+ - merged: The followup commit is also merged in the downstream.  In other
+   words, you don't need to worry about the commit.
+ - unmerged: The followup commit is not merged in the downstream.  You should
+   carefully check how things are going on.
