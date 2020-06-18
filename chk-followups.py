@@ -83,7 +83,7 @@ class TrackResult:
 
 def hash_by_title(title, revision_range, repo):
     keyword = title.replace('\'', '\'"\'"\'')
-    cmd = 'git --git-dir=%s/.git log --oneline %s | grep \'%s\' -m 1' % (
+    cmd = 'git --git-dir=%s/.git log --oneline %s | grep -F \'%s\' -m 1' % (
             repo, revision_range, keyword)
     try:
         result = subprocess.check_output(cmd, shell=True).decode()
