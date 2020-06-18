@@ -43,11 +43,12 @@ below tags:
 In case of fixed or mentioned, the followup commits will also be listed.  For
 example:
 
-    scsi: sd_zbc: Avoid that resetting a zone fails sporadically # fixed,mentioned,unmerged
+    x86/unwind/orc: Prevent unwinding before ORC initialization # fixed
+      fixes merged
+        71c95825289f ("x86/unwind/orc: Fix error handling in __unwind_start()")
+    bnxt_en: Improve AER slot reset. # fixed,unmerged
       fixes unmerged
-        3aadbe2523ca ("scsi: sd_zbc: Fix sd_zbc_check_zone_size() error path")
+        6e2f83884c09 ("bnxt_en: Fix AER reset logic on 57500 chips.")
+    KEYS: Don't write out to userspace while holding key semaphore # mentioned,unmerged
       mentions unmerged
-        3442097b765c ("Merge tag 'scsi-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi")
-    scsi: sd_zbc: Remove superfluous assignments # mentioned,unmerged
-      mentions unmerged
-        8d5e72dfdf0f ("Merge tag 'scsi-misc' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi")
+        4c205c84e249 ("Merge tag 'keys-fixes-20200329' of git://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs")
