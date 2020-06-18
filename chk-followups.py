@@ -14,7 +14,7 @@ class Commit:
 
         git_cmd = ['git', '--git-dir=%s/.git' % repo]
         git_cmd += ['show', '%s' % gitref, '--pretty=%H%n%B', '--quiet']
-        git_log = subprocess.check_output(git_cmd).decode('utf-8').strip()
+        git_log = subprocess.check_output(git_cmd).decode().strip()
 
         log_lines = git_log.split('\n')
         self.commit_hash = log_lines[0]
@@ -38,8 +38,8 @@ class TrackResult:
 
     def __init__(self, upstream_commit):
         self.upstream_commit = upstream_commit
-        self.followup_fixes = []    # list of tuples (upstream, downstream)
-        self.followup_mentions = [] # list of tuples (upstream, downstream)
+        self.followup_fixes = []    # [[upstream commit, downstream hash] ...]
+        self.followup_mentions = [] # [[upstream commit, downstream hash] ...]
 
     def __str__(self):
         if not self.upstream_commit:
@@ -86,7 +86,7 @@ def hash_by_title(title, revision_range, repo):
     cmd = 'git --git-dir=%s/.git log --oneline %s | grep "%s" -m 1' % (
             repo, revision_range, keyword)
     try:
-        result = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        result = subprocess.check_output(cmd, shell=True).decode()
         commit_hash = result[:12]
         grepped = result[13:].strip()
         if grepped != title:
@@ -102,14 +102,14 @@ def hash_by_title(title, revision_range, repo):
 def touched_files(gitref, repo):
     git_cmd = ['git', '--git-dir=%s/.git' % repo]
     git_cmd += ['show', '%s' % gitref, '--pretty=', '--name-only']
-    return subprocess.check_output(git_cmd).decode('utf-8').strip().split('\n')
+    return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
 def hashes_in(base, to, repo, target_files):
     git_cmd = ['git', '--git-dir=%s/.git' % repo]
     git_cmd += ['log', '%s..%s' % (base, to), '--pretty=%H']
     if target_files:
         git_cmd += ['--'] + target_files.split()
-    return subprocess.check_output(git_cmd).decode('utf-8').strip().split('\n')
+    return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
 def track(commit, repo, upstream, downstream, track_all_files):
     result = TrackResult(commit)
@@ -128,37 +128,17 @@ def track(commit, repo, upstream, downstream, track_all_files):
         if not h:
             continue
         upstream_commit = Commit(h, repo)
-        followup_list = [upstream_commit, None]
+        followups = [upstream_commit, None]
         if upstream_commit.is_fix_of(commit):
-            result.followup_fixes.append(followup_list)
+            result.followup_fixes.append(followups)
         elif upstream_commit.mentioned(commit):
-            result.followup_mentions.append(followup_list)
+            result.followup_mentions.append(followups)
+        else:
+            continue
 
-        if result.followup_fixes or result.followup_mentions:
-            down_hash = hash_by_title(upstream_commit.title, downstream, repo)
-            if down_hash:
-                followup_list[1] = down_hash
+        followups[1] = hash_by_title(upstream_commit.title, downstream, repo)
+
     return result
-
-def set_argparser(parser):
-    parser.add_argument('--repo', metavar='<path>', default='./',
-            help='path to the kernel source git repo')
-    parser.add_argument('--upstream', metavar='<revision range>',
-            help='the upstream history')
-    parser.add_argument('--downstream', metavar='<revision range>',
-            help='the downstream history')
-    parser.add_argument('--titles', metavar='<title>',
-            help='the titles of the downstream commits to track for')
-
-    parser.add_argument('--all_files', action='store_true',
-            help='track whole files, rather than touched files only')
-
-    parser.description='check status of followup commits in the upstream.'
-
-
-def pr_results(results, titles):
-    for t in titles:
-        print('%s: %s' % (t, results[t]))
 
 def pr_summary(results):
     print('%d of the %d downstream commits are merged in the upstream.' %
@@ -193,6 +173,21 @@ def pr_summary(results):
     print('%d followup mentions found (%d are not applied downstream)' %
             (nr_mentions, nr_unmerged_mentions))
 
+def set_argparser(parser):
+    parser.add_argument('--repo', metavar='<path>', default='./',
+            help='path to the kernel source git repo')
+    parser.add_argument('--upstream', metavar='<revision range>',
+            help='the upstream history')
+    parser.add_argument('--downstream', metavar='<revision range>',
+            help='the downstream history')
+    parser.add_argument('--titles', metavar='<title>',
+            help='the titles of the downstream commits to track for')
+
+    parser.add_argument('--all_files', action='store_true',
+            help='track whole files, rather than touched files only')
+
+    parser.description='track status of followup commits in the upstream.'
+
 def main():
     parser = argparse.ArgumentParser()
     set_argparser(parser)
@@ -201,7 +196,7 @@ def main():
     repo = args.repo
 
     if not args.upstream:
-        print('updatream is not given')
+        print('upstream is not given')
         parser.print_help()
         exit(1)
     upstream = args.upstream
@@ -218,7 +213,7 @@ def main():
     downstream = args.downstream
 
     if not args.titles:
-        print('# check all downstream commits')
+        print('# track for all downstream commits')
         cmd = 'git --git-dir=%s/.git log --pretty=%%s %s' % (repo, downstream)
         try:
             args.titles = subprocess.check_output(cmd, shell=True).decode()
@@ -235,8 +230,7 @@ def main():
             results[t] = TrackResult(None)
         else:
             c = Commit(h, repo)
-            result = track(c, repo, upstream, downstream, args.all_files)
-            results[c.title] = result
+            results[t] = track(c, repo, upstream, downstream, args.all_files)
         print('%s #' % t, results[t])
 
     print('')
