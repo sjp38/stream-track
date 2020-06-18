@@ -37,8 +37,6 @@ below tags:
    checking the 'Fixes' tag.
  - mentioned: There are upstream commits mentioning the commit.  This could be
    non-fixes (e.g., merge), but would be worth to check.
- - merged: The followup commit is also merged in the downstream.  In other
-   words, you don't need to worry about the commit.
  - unmerged: The followup commit is not merged in the downstream.  You should
    carefully check how things are going on.
 
