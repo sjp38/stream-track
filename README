@@ -1,4 +1,4 @@
-'chk-followup.py' finds upstream commits that fixes or mentions specific
+'chk-followups.py' finds upstream commits that fixes or mentions specific
 commits and check whether the followup changes in the upstream are already in
 your downstream tree.
 
@@ -7,7 +7,7 @@ stable release.  You periodically rebase your work on latest 5.4 stable release
 to ensure your kernel is safe.  But, you also back-ported some commits from
 v5.5.  Now the periodic rebasing cannot ensure you have all necessary fixes in
 your kernel, as the fixes for the back-ported commits will land on only v5.5 or
-later stable releases.  'chk-followup.py' is the tool for such cases.
+later stable releases.  'chk-followups.py' is the tool for such cases.
 
 Getting Started
 ===============
@@ -41,3 +41,15 @@ below tags:
    words, you don't need to worry about the commit.
  - unmerged: The followup commit is not merged in the downstream.  You should
    carefully check how things are going on.
+
+In case of fixed or mentioned, the followup commits will also be listed.  For
+example:
+
+    scsi: sd_zbc: Avoid that resetting a zone fails sporadically # fixed,mentioned,unmerged
+      fixes unmerged
+        3aadbe2523ca ("scsi: sd_zbc: Fix sd_zbc_check_zone_size() error path")
+      mentions unmerged
+        3442097b765c ("Merge tag 'scsi-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi")
+    scsi: sd_zbc: Remove superfluous assignments # mentioned,unmerged
+      mentions unmerged
+        8d5e72dfdf0f ("Merge tag 'scsi-misc' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi")
