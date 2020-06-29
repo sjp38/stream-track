@@ -192,6 +192,8 @@ def set_argparser(parser):
     parser.add_argument('--titles', metavar='<title>',
             help='the titles of the downstream commits to track for')
 
+    parser.add_argument('--followups_only', action='store_true',
+            help='do not print commits having no followups')
     parser.add_argument('--all_files', action='store_true',
             help='track whole files, rather than touched files only')
 
@@ -240,14 +242,17 @@ def main():
         else:
             c = Commit(h, repo)
             results[t] = track(c, repo, upstream, downstream, args.all_files)
-        print('%s #' % t, results[t])
+        r = results[t]
+        if not args.followups_only or (r.followup_fixes or r.followup_mentions):
+            print('%s #' % t, results[t])
 
-    print()
-    print()
-    print('HIGHLIGHTS')
-    print('==========')
-    print()
-    pr_highlights(results)
+    if not args.followups_only:
+        print()
+        print()
+        print('HIGHLIGHTS')
+        print('==========')
+        print()
+        pr_highlights(results)
     print()
     print()
     print('SUMMARY')
