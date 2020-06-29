@@ -142,6 +142,13 @@ def track(commit, repo, upstream, downstream, track_all_files):
 
     return result
 
+def pr_highlights(results):
+    for title in results:
+        r = results[title]
+        if not r.followup_fixes and not r.followup_mentions:
+            continue
+        print('%s #' % title, r)
+
 def pr_summary(results):
     print('%d of the %d downstream commits are merged in the upstream.' %
             (len([x for x in results.values() if x.upstream_commit]),
@@ -235,8 +242,14 @@ def main():
             results[t] = track(c, repo, upstream, downstream, args.all_files)
         print('%s #' % t, results[t])
 
-    print('')
-    print('')
+    print()
+    print()
+    print('HIGHLIGHTS')
+    print('==========')
+    print()
+    pr_highlights(results)
+    print()
+    print()
     print('SUMMARY')
     print('=======')
     print()
