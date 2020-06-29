@@ -29,6 +29,8 @@ class Commit:
         return fixes_tag in self.msg
 
     def mentioned(self, commit):
+        if self.title.lower().startswith('merge '):
+            return False
         return commit.title in self.msg or commit.commit_hash in self.msg
 
 class TrackResult:
