@@ -182,6 +182,19 @@ def pr_summary(results):
     print('%d followup mentions found (%d are not applied downstream)' %
             (nr_mentions, nr_unmerged_mentions))
 
+def hash_by_ref(reference, repo):
+    cmd = 'git --git-dir=%s/.git show-ref --hash %s' % (
+            repo, reference)
+    return subprocess.check_output(cmd, shell=True).decode().strip()
+
+def pr_streams(upstream, downstream, repo):
+    print('# upstream: %s' % upstream)
+    print('# downstream: %s' % downstream)
+
+    for ref in upstream.split('..') + downstream.split('..'):
+        hash_ = hash_by_ref(ref, repo)
+        print('# %s: %s' % (ref, hash_))
+
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
             help='path to the kernel source git repo')
@@ -191,6 +204,8 @@ def set_argparser(parser):
             help='the downstream history')
     parser.add_argument('--titles', metavar='<title>',
             help='the titles of the downstream commits to track for')
+    parser.add_argument('--prev_results', metavar='<file>',
+            help='the file containing previous result')
 
     parser.add_argument('--followups_only', action='store_true',
             help='do not print commits having no followups')
@@ -223,8 +238,7 @@ def main():
         print('# use %s as downstream' % args.downstream)
     downstream = args.downstream
 
-    print('# upstream:', upstream)
-    print('# downstream:', downstream)
+    pr_streams(upstream, downstream, repo)
 
     if not args.titles:
         print('# track for all downstream commits')
