@@ -223,6 +223,9 @@ def main():
         print('# use %s as downstream' % args.downstream)
     downstream = args.downstream
 
+    print('# upstream:', upstream)
+    print('# downstream:', downstream)
+
     if not args.titles:
         print('# track for all downstream commits')
         cmd = 'git --git-dir=%s/.git log --pretty=%%s %s' % (repo, downstream)
