@@ -67,7 +67,7 @@ def commit_date(hashid, repo):
     date_str = subprocess.check_output(cmd, shell=True).decode().strip()
     return datetime.datetime.strptime(date_str, '%Y-%m-%d')
 
-def parse_output(output_lines, repo):
+def parse_pr_summary(output_lines, repo):
     """
 
     lines are supposed to be in below format:
@@ -115,9 +115,10 @@ def main():
     set_argparser(parser)
     args = parser.parse_args()
 
+    print('# commits ports fixes fixes_unapplied mentions mentions_unapplied')
     for output in args.outputs:
         with open(output, 'r') as f:
-            parse_output(f.readlines(), args.repo)
+            parse_pr_summary(f.readlines(), args.repo)
 
 if __name__ == '__main__':
     main()
