@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
+import datetime
+import subprocess
 
 class Summary:
     nr_commits = None
@@ -59,7 +61,13 @@ def parse_refs(lines):
             print('hash for ref %s not found' % ref)
     return upstream, downstream, hashes
 
-def parse_output(output_lines):
+def commit_date(hashid, repo):
+    cmd = 'git --git-dir=%s/.git log %s^..%s' % (repo, hashid, hashid)
+    cmd += ' --pretty="%cd" --date=format:\'%Y-%m-%d\' | head -n 1'
+    date_str = subprocess.check_output(cmd, shell=True).decode().strip()
+    return datetime.datetime.strptime(date_str, '%Y-%m-%d')
+
+def parse_output(output_lines, repo):
     """
 
     lines are supposed to be in below format:
@@ -84,8 +92,17 @@ def parse_output(output_lines):
 
     upstream, downstream, hashes = parse_refs(output_lines[:6])
 
+    dates = []
+    for h in hashes.values():
+        dates.append(commit_date(h, repo))
+
+
+    up = '%s..%s' % (hashes[upstream[0]][:12], hashes[upstream[1]][:12])
+    dn = '%s..%s' % (hashes[downstream[0]][:12], hashes[downstream[1]][:12])
+
     summary = parse_summary(output_lines[-6:])
-    print(summary)
+    print('%s # %s up: %s dn: %s' % (
+        summary, max(dates).strftime('%Y-%m-%d'), up, dn))
 
 def set_argparser(parser):
     parser.add_argument('outputs', metavar='<file>', nargs='+',
@@ -100,7 +117,7 @@ def main():
 
     for output in args.outputs:
         with open(output, 'r') as f:
-            parse_output(f.readlines())
+            parse_output(f.readlines(), args.repo)
 
 if __name__ == '__main__':
     main()
