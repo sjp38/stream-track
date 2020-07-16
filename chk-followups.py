@@ -183,8 +183,7 @@ def pr_summary(results):
             (nr_mentions, nr_unmerged_mentions))
 
 def hash_by_ref(reference, repo):
-    cmd = 'git --git-dir=%s/.git show-ref --hash %s' % (
-            repo, reference)
+    cmd = 'git --git-dir=%s/.git rev-parse %s' % (repo, reference)
     return subprocess.check_output(cmd, shell=True).decode().strip()
 
 def pr_streams(upstream, downstream, repo):
