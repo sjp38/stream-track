@@ -97,12 +97,10 @@ def parse_pr_summary(prefix, output_lines, repo):
     if not upstream or not downstream or not hashes:
         return
 
-    dates = {}
-    for h in hashes.values():
-        dates[h] = commit_date(h, repo)
-
-    up = fmt_date_range(dates[hashes[upstream[0]]], dates[hashes[upstream[1]]])
-    dn = fmt_date_range(dates[hashes[downstream[0]]], dates[hashes[downstream[1]]])
+    up = fmt_date_range(commit_date(hashes[upstream[0]], repo),
+            commit_date(hashes[upstream[1]], repo))
+    dn = fmt_date_range(commit_date(hashes[downstream[0]], repo),
+            commit_date(hashes[downstream[1]], repo))
 
     summary = parse_summary(output_lines[-6:])
     if not summary:
