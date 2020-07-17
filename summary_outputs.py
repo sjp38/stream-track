@@ -102,6 +102,8 @@ def parse_pr_summary(prefix, output_lines, repo):
     dn = fmt_date_range(dates[hashes[downstream[0]]], dates[hashes[downstream[1]]])
 
     summary = parse_summary(output_lines[-6:])
+    if not summary:
+        return
     print('%s\t%s\t# up: %s dn: %s' % (prefix, summary, up, dn))
 
 def pr_comments_legends():
