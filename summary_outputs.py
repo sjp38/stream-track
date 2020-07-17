@@ -121,8 +121,9 @@ def main():
     print('# missed_fixes: \'fixes\' that unapplied in the downstream')
     print('# mentions: The upstream commits mentioning the \'ports\'')
     print('# missed_mentions: \'mentions\' that unapplied in the downstream')
-    print('commits ports fixes missed_fixes mentions missed_mentions')
+    print('file commits ports fixes missed_fixes mentions missed_mentions')
     for output in args.outputs:
+        print(output, end=' ')
         with open(output, 'r') as f:
             parse_pr_summary(f.readlines(), args.repo)
 
