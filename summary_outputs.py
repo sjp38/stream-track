@@ -106,17 +106,7 @@ def parse_pr_summary(output_lines, repo):
     print('%s # up: %s dn: %s' % (
         summary, up, dn))
 
-def set_argparser(parser):
-    parser.add_argument('outputs', metavar='<file>', nargs='+',
-            help='files containing output of chk-followups.py')
-    parser.add_argument('--repo', metavar='<path>', default='./',
-            help='path to the kernel source git repo')
-
-def main():
-    parser = argparse.ArgumentParser()
-    set_argparser(parser)
-    args = parser.parse_args()
-
+def pr_comments_legends():
     print('# commits: The downstream commits')
     print('# ports: The downstream commits back-ported from the upstream')
     print('# fixes: The upstream commits fixing the \'ports\'')
@@ -124,6 +114,23 @@ def main():
     print('# mentions: The upstream commits mentioning the \'ports\'')
     print('# missed_mentions: \'mentions\' that unapplied in the downstream')
     print('file commits ports fixes missed_fixes mentions missed_mentions')
+
+def set_argparser(parser):
+    parser.add_argument('outputs', metavar='<file>', nargs='+',
+            help='files containing output of chk-followups.py')
+    parser.add_argument('--repo', metavar='<path>', default='./',
+            help='path to the kernel source git repo')
+    parser.add_argument('--brief', action='store_true',
+            help='exclude comments and legends from the output')
+
+def main():
+    parser = argparse.ArgumentParser()
+    set_argparser(parser)
+    args = parser.parse_args()
+
+    if not args.brief:
+        pr_comments_legends()
+
     for output in args.outputs:
         print(output, end=' ')
         with open(output, 'r') as f:
