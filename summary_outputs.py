@@ -67,6 +67,9 @@ def commit_date(hashid, repo):
     date_str = subprocess.check_output(cmd, shell=True).decode().strip()
     return datetime.datetime.strptime(date_str, '%Y-%m-%d')
 
+def fmt_date_range(start, end):
+    return '%s..%s' % (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
+
 def parse_pr_summary(output_lines, repo):
     """
 
@@ -92,17 +95,16 @@ def parse_pr_summary(output_lines, repo):
 
     upstream, downstream, hashes = parse_refs(output_lines[:6])
 
-    dates = []
+    dates = {}
     for h in hashes.values():
-        dates.append(commit_date(h, repo))
+        dates[h] = commit_date(h, repo)
 
-
-    up = '%s..%s' % (hashes[upstream[0]][:12], hashes[upstream[1]][:12])
-    dn = '%s..%s' % (hashes[downstream[0]][:12], hashes[downstream[1]][:12])
+    up = fmt_date_range(dates[hashes[upstream[0]]], dates[hashes[upstream[1]]])
+    dn = fmt_date_range(dates[hashes[downstream[0]]], dates[hashes[downstream[1]]])
 
     summary = parse_summary(output_lines[-6:])
-    print('%s # %s up: %s dn: %s' % (
-        summary, max(dates).strftime('%Y-%m-%d'), up, dn))
+    print('%s # up: %s dn: %s' % (
+        summary, up, dn))
 
 def set_argparser(parser):
     parser.add_argument('outputs', metavar='<file>', nargs='+',
