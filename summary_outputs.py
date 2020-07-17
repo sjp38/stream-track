@@ -115,7 +115,13 @@ def main():
     set_argparser(parser)
     args = parser.parse_args()
 
-    print('# commits ports fixes fixes_unapplied mentions mentions_unapplied')
+    print('# commits: The downstream commits')
+    print('# ports: The downstream commits back-ported from the upstream')
+    print('# fixes: The upstream commits fixing the \'ports\'')
+    print('# missed_fixes: \'fixes\' that unapplied in the downstream')
+    print('# mentions: The upstream commits mentioning the \'ports\'')
+    print('# missed_mentions: \'mentions\' that unapplied in the downstream')
+    print('commits ports fixes missed_fixes mentions missed_mentions')
     for output in args.outputs:
         with open(output, 'r') as f:
             parse_pr_summary(f.readlines(), args.repo)
