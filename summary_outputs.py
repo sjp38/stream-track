@@ -13,7 +13,7 @@ class Summary:
     nr_mentioned_unapplied = None
 
     def __str__(self):
-        return '%d %d %d %d %d %d' % (self.nr_commits, self.nr_backported,
+        return '%d\t%d\t%d\t%d\t%d\t%d' % (self.nr_commits, self.nr_backported,
                 self.nr_fixed, self.nr_fixed_unapplied,
                 self.nr_mentioned, self.nr_mentioned_unapplied)
 
@@ -72,7 +72,6 @@ def fmt_date_range(start, end):
 
 def parse_pr_summary(output_lines, repo):
     """
-
     lines are supposed to be in below format:
 
         # upstream: <ref1>..<ref2>
@@ -103,7 +102,7 @@ def parse_pr_summary(output_lines, repo):
     dn = fmt_date_range(dates[hashes[downstream[0]]], dates[hashes[downstream[1]]])
 
     summary = parse_summary(output_lines[-6:])
-    print('%s # up: %s dn: %s' % (
+    print('%s\t# up: %s dn: %s' % (
         summary, up, dn))
 
 def pr_comments_legends():
@@ -113,7 +112,8 @@ def pr_comments_legends():
     print('# missed_fixes: \'fixes\' that unapplied in the downstream')
     print('# mentions: The upstream commits mentioning the \'ports\'')
     print('# missed_mentions: \'mentions\' that unapplied in the downstream')
-    print('file commits ports fixes missed_fixes mentions missed_mentions')
+    print('#')
+    print('\t'.join('file commits ports fixes missed_fixes mentions missed_mentions'.split()))
 
 def set_argparser(parser):
     parser.add_argument('outputs', metavar='<file>', nargs='+',
@@ -132,7 +132,7 @@ def main():
         pr_comments_legends()
 
     for output in args.outputs:
-        print(output, end=' ')
+        print(output, end='\t')
         with open(output, 'r') as f:
             parse_pr_summary(f.readlines(), args.repo)
 
