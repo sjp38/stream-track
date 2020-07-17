@@ -109,15 +109,16 @@ def parse_pr_summary(prefix, output_lines, repo):
         return
     print('%s\t%s\t# up: %s dn: %s' % (prefix, summary, up, dn))
 
-def pr_comments_legends():
-    print('# commits: The downstream commits')
-    print('# ports: The downstream commits back-ported from the upstream')
-    print('# fixes: The upstream commits fixing the \'ports\'')
-    print('# missed_fixes: \'fixes\' that unapplied in the downstream')
-    print('# mentions: The upstream commits mentioning the \'ports\'')
-    print('# missed_mentions: \'mentions\' that unapplied in the downstream')
+def pr_comments_legends(max_filename_len):
+    print('# cmmt: The downstream commits')
+    print('# port: The downstream commits back-ported from the upstream')
+    print('# fixs: The upstream commits fixing the \'port\'')
+    print('# ufix: \'fixs\' that unapplied in the downstream')
+    print('# mntn: The upstream commits mentioning the \'port\'')
+    print('# umnt: \'mntn\' that unapplied in the downstream')
     print('#')
-    print('\t'.join('file commits ports fixes missed_fixes mentions missed_mentions'.split()))
+    print(' ' * (max_filename_len - 4), end='')
+    print('\t'.join('file cmmt port fixs ufix mntn umnt'.split()))
 
 def set_argparser(parser):
     parser.add_argument('outputs', metavar='<file>', nargs='+',
@@ -132,8 +133,11 @@ def main():
     set_argparser(parser)
     args = parser.parse_args()
 
+    filename_lengths = [len(output) for output in args.outputs]
+    maxlen = max(filename_lengths)
+
     if not args.brief:
-        pr_comments_legends()
+        pr_comments_legends(maxlen)
 
     for output in args.outputs:
         with open(output, 'r') as f:
