@@ -43,11 +43,11 @@ def parse_refs(lines):
     for line in lines:
         if not line.startswith('# '):
             print('refs line should be a comment but: %s' % line)
-            exit(1)
+            return None, None, None
         fields = line[2:].strip().split(': ')
         if len(fields) != 2:
             print('invalid refs line: %s' % line)
-            exit(1)
+            return None, None, None
 
         if not upstream:
             upstream = fields[1].split('..')
@@ -59,6 +59,7 @@ def parse_refs(lines):
     for ref in upstream + downstream:
         if not ref in hashes:
             print('hash for ref %s not found' % ref)
+            return None, None, None
     return upstream, downstream, hashes
 
 def commit_date(hashid, repo):
@@ -93,6 +94,8 @@ def parse_pr_summary(prefix, output_lines, repo):
     """
 
     upstream, downstream, hashes = parse_refs(output_lines[:6])
+    if not upstream or not downstream or not hashes:
+        return
 
     dates = {}
     for h in hashes.values():
