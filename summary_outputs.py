@@ -70,7 +70,7 @@ def commit_date(hashid, repo):
 def fmt_date_range(start, end):
     return '%s..%s' % (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
 
-def parse_pr_summary(output_lines, repo):
+def parse_pr_summary(prefix, output_lines, repo):
     """
     lines are supposed to be in below format:
 
@@ -102,8 +102,7 @@ def parse_pr_summary(output_lines, repo):
     dn = fmt_date_range(dates[hashes[downstream[0]]], dates[hashes[downstream[1]]])
 
     summary = parse_summary(output_lines[-6:])
-    print('%s\t# up: %s dn: %s' % (
-        summary, up, dn))
+    print('%s\t%s\t# up: %s dn: %s' % (prefix, summary, up, dn))
 
 def pr_comments_legends():
     print('# commits: The downstream commits')
@@ -132,9 +131,8 @@ def main():
         pr_comments_legends()
 
     for output in args.outputs:
-        print(output, end='\t')
         with open(output, 'r') as f:
-            parse_pr_summary(f.readlines(), args.repo)
+            parse_pr_summary(output, f.readlines(), args.repo)
 
 if __name__ == '__main__':
     main()
