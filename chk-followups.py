@@ -83,6 +83,79 @@ class TrackResult:
 
         return '\n'.join(lines)
 
+class TrackResults:
+    downstream = None
+    upstream = None
+    hashids = {}
+    results = {}
+
+    def __str__(self):
+        lines = []
+        lines.append('# upstream: %s' % self.upstream)
+        lines.append('# downstream: %s' % self.downstream)
+        for ref in self.hashids:
+            lines.append('# %s: %s' % (ref, self.hashids[ref]))
+
+        for t in self.results:
+            lines.append('%s # %s' % (t, self.results[t]))
+
+        return '\n'.join(lines)
+
+def parse_track_results(results_lines, repo):
+    parsed = TrackResults()
+    results = parsed.results
+
+    result = None
+    for line in results_lines:
+        if line == '':
+            break
+        if line.startswith('# upstream: '):
+            parsed.upstream = line[len('# upstream: '):].split('..')
+            continue
+        if line.startswith('# downstream: '):
+            parsed.downstream = line[len('# downstream: '):].split('..')
+            continue
+        if line.startswith('# '):
+            fields = line[2:].split(': ')
+            if (len(fields) == 2 and
+                        fields[0] in parsed.upstream + parsed.downstream):
+                    parsed.hashids[fields[0]] = fields[1]
+            continue
+
+        if result:
+            if line in ['  mentions merged', '  mentions unmerged',
+                    '  fixes merged', '  fixes unmerged']:
+                type_ = line.strip().split()
+                continue
+            if line.startswith('    '):
+                line = line.strip()
+                hashid = line[:12]
+                title = line[15:-2]
+                upstream_commit = Commit(hashid, repo)
+                if type_[1] == 'merged':
+                    down_hash = True
+                elif type_[1] == 'unmerged':
+                    down_hash = None
+                followup = [upstream_commit, down_hash]
+                if type_[0] == 'mentions':
+                    result.followup_mentions.append(followup)
+                elif type_[0] == 'fixes':
+                    result.followup_fixes.append(followup)
+            else:
+                result = None
+        else:
+            comments_start = line.rfind(' # ')
+            title = line[:comments_start]
+            comment = line[comments_start + 3:]
+            if comment == 'downstream_only':
+                results[title] = TrackResult(None)
+            else:
+                upstream_commit = True
+                results[title] = TrackResult(upstream_commit)
+            if comment not in ['downstream_only', 'no_followup']:
+                result = results[title]
+    return parsed
+
 title_hash_maps = {}
 
 def hash_by_title(title, revision_range, repo):
