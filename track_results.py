@@ -90,8 +90,8 @@ class TrackResults:
 
     def head_lines(self):
         lines = []
-        lines.append('# upstream: %s' % self.upstream)
-        lines.append('# downstream: %s' % self.downstream)
+        lines.append('# upstream: %s' % '..'.join(self.upstream))
+        lines.append('# downstream: %s' % '..'.join(self.downstream))
         for ref in self.hashids:
             lines.append('# %s: %s' % (ref, self.hashids[ref]))
         return lines
