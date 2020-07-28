@@ -212,6 +212,8 @@ def set_argparser(parser):
     parser.add_argument('--all_files', action='store_true',
             help='track whole files, rather than touched files only')
 
+    parser.add_argument('--downstream_prefix', metavar='<prefix>',
+            help='commits having titles with the prefix are downstream only')
     parser.description='track status of followup commits in the upstream.'
 
 def main():
@@ -253,7 +255,11 @@ def main():
     results = {}
 
     for t in titles:
-        h = hash_by_title(t, upstream, repo)
+        if args.downstream_prefix and t.startswith(args.downstream_prefix):
+            h = None
+        else:
+            h = hash_by_title(t, upstream, repo)
+
         if not h:
             results[t] = TrackResult(None)
         else:
