@@ -74,46 +74,6 @@ def track(commit, repo, upstream, downstream, track_all_files):
 
     return result
 
-def pr_highlights(results):
-    for title in results:
-        r = results[title]
-        if not r.followup_fixes and not r.followup_mentions:
-            continue
-        print('%s #' % title, r)
-
-def pr_summary(results):
-    print('%d of the %d downstream commits are merged in the upstream.' %
-            (len([x for x in results.values() if x.upstream_commit]),
-            len(results)))
-
-    nr_fixed = 0
-    nr_fixes = 0
-    nr_unmerged_fixes = 0
-    for r in results.values():
-        if r.followup_fixes:
-            nr_fixed += 1
-            nr_fixes += len(r.followup_fixes)
-            for f in r.followup_fixes:
-                if f[1] == None:
-                    nr_unmerged_fixes += 1
-
-    print('%d followup fixes found (%d are not applied downstream)' %
-            (nr_fixes, nr_unmerged_fixes))
-
-    nr_mentioned = 0
-    nr_mentions = 0
-    nr_unmerged_mentions = 0
-    for r in results.values():
-        if r.followup_mentions:
-            nr_mentioned += 1
-            nr_mentions += len(r.followup_mentions)
-            for f in r.followup_mentions:
-                if f[1] == None:
-                    nr_unmerged_mentions += 1
-
-    print('%d followup mentions found (%d are not applied downstream)' %
-            (nr_mentions, nr_unmerged_mentions))
-
 def hash_by_ref(reference, repo):
     cmd = 'git --git-dir=%s/.git rev-parse %s' % (repo, reference)
     return subprocess.check_output(cmd, shell=True).decode().strip()
@@ -195,7 +155,9 @@ def main():
     else:
         titles = args.titles.strip().split('\n')
 
+    track_results = TrackResults()
     results = {}
+    track_results.results = results
 
     for t in titles:
         if args.downstream_prefix and t.startswith(args.downstream_prefix):
@@ -218,13 +180,13 @@ def main():
         print('HIGHLIGHTS')
         print('==========')
         print()
-        pr_highlights(results)
+        print('\n'.join(track_results.highlight_lines()))
     print()
     print()
     print('SUMMARY')
     print('=======')
     print()
-    pr_summary(results)
+    print('\n'.join(track_results.summary_lines()))
 
 if __name__ == '__main__':
     main()
