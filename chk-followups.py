@@ -86,6 +86,15 @@ def pr_streams(upstream, downstream, repo):
         hash_ = hash_by_ref(ref, repo)
         print('# %s: %s' % (ref, hash_))
 
+def same_streams(prev_results, upstream, downstream, repo):
+    prev_upstream = [prev_results.hashids[x] for x in prev_results.upstream]
+    prev_dnstream = [prev_results.hashids[x] for x in prev_results.downstream]
+
+    upstream = [hash_by_ref(r, repo) for r in upstream.split('..')]
+    dnstream = [hash_by_ref(r, repo) for r in downstream.split('..')]
+
+    return prev_upstream == upstream and prev_dnstream == dnstream
+
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
             help='path to the kernel source git repo')
@@ -134,6 +143,13 @@ def main():
     pr_streams(upstream, downstream, repo)
 
     if not args.titles:
+        if args.prev_results:
+            with open(args.prev_results, 'r') as f:
+                prev_res = parse_track_results(f.readlines(), repo)
+                if (same_streams(prev_res, upstream, downstream, repo)):
+                    print(prev_res)
+                    exit(0)
+
         print('# track for all downstream commits')
         if not downstream in title_hash_maps:
             title_hash_maps[downstream] = {}
