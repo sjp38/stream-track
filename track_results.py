@@ -88,15 +88,84 @@ class TrackResults:
     hashids = {}
     results = {}
 
-    def __str__(self):
+    def head_lines(self):
         lines = []
         lines.append('# upstream: %s' % self.upstream)
         lines.append('# downstream: %s' % self.downstream)
         for ref in self.hashids:
             lines.append('# %s: %s' % (ref, self.hashids[ref]))
+        return lines
 
+    def body_lines(self):
+        lines = []
         for t in self.results:
             lines.append('%s # %s' % (t, self.results[t]))
+        return lines
+
+    def highlight_lines(self):
+        results = self.results
+        lines = []
+        for title in results:
+            r = results[title]
+            if not r.followup_fixes and not r.followup_mentions:
+                continue
+            lines.append('%s # %s' % (title, r))
+        return lines
+
+    def summary_lines(self):
+        results = self.results
+        lines = []
+
+        lines.append(
+                '%d of the %d downstream commits are merged in the upstream.' %
+                (len([x for x in results.values() if x.upstream_commit]),
+                    len(results)))
+
+        nr_fixed = 0
+        nr_fixes = 0
+        nr_unmerged_fixes = 0
+        for r in results.values():
+            if r.followup_fixes:
+                nr_fixed += 1
+                nr_fixes += len(r.followup_fixes)
+                for f in r.followup_fixes:
+                    if f[1] == None:
+                        nr_unmerged_fixes += 1
+
+        lines.append('%d followup fixes found (%d are not applied downstream)'
+                % (nr_fixes, nr_unmerged_fixes))
+
+        nr_mentioned = 0
+        nr_mentions = 0
+        nr_unmerged_mentions = 0
+        for r in results.values():
+            if r.followup_mentions:
+                nr_mentioned += 1
+                nr_mentions += len(r.followup_mentions)
+                for f in r.followup_mentions:
+                    if f[1] == None:
+                        nr_unmerged_mentions += 1
+
+        lines.append(
+                '%d followup mentions found (%d are not applied downstream)' %
+                (nr_mentions, nr_unmerged_mentions))
+
+        return lines
+
+    def __str__(self):
+        lines = self.head_lines() + self.body_lines()
+        lines.append('')
+        lines.append('')
+        lines.append('HIGHLIGHTS')
+        lines.append('==========')
+        lines.append('')
+        lines += self.highlight_lines()
+        lines.append('')
+        lines.append('')
+        lines.append('SUMMARY')
+        lines.append('=======')
+        lines.append('')
+        lines += self.summary_lines()
 
         return '\n'.join(lines)
 
