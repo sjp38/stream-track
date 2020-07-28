@@ -58,7 +58,7 @@ def fmt_date_range(start, end):
     return '%s..%s' % (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
 
 def parse_pr_summary(prefix, output_lines, repo):
-    results = track_results.parse_track_results(output_lines, repo)
+    results = track_results.parse_track_results(output_lines[:10], repo)
     upstream = results.upstream
     downstream = results.downstream
     hashes = results.hashids
