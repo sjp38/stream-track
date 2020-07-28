@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import os
 import subprocess
 
 class Summary:
@@ -143,6 +144,9 @@ def main():
         pr_comments_legends(maxlen)
 
     for output in args.outputs:
+        if not os.path.isfile(output):
+            print('%s not exist' % output)
+            continue
         with open(output, 'r') as f:
             parse_pr_summary(output, f.readlines(), args.repo)
 
