@@ -253,13 +253,25 @@ def main():
 
     if not args.titles:
         print('# track for all downstream commits')
-        cmd = 'git --git-dir=%s/.git log --pretty=%%s %s' % (repo, downstream)
+        if not downstream in title_hash_maps:
+            title_hash_maps[downstream] = {}
+
+        cmd = 'git --git-dir=%s/.git log --pretty="%%h %%s" --abbrev=12 %s' % (
+                repo, downstream)
         try:
-            args.titles = subprocess.check_output(cmd, shell=True).decode()
+            results = subprocess.check_output(cmd, shell=True).decode()
+            titles = []
+            for r in results.strip().split('\n'):
+                r = r.strip()
+                hashid = r[:12]
+                title = r[13:]
+                title_hash_maps[downstream][title] = hashid
+                titles.append(title)
         except:
             print('failed getting the downstream commits')
             exit(1)
-    titles = args.titles.strip().split('\n')
+    else:
+        titles = args.titles.strip().split('\n')
 
     results = {}
 
