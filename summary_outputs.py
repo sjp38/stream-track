@@ -5,6 +5,8 @@ import datetime
 import os
 import subprocess
 
+import track_results
+
 class Summary:
     nr_commits = None
     nr_backported = None
@@ -19,6 +21,15 @@ class Summary:
                 self.nr_mentioned, self.nr_mentioned_unapplied)
 
 def parse_summary(lines):
+    """
+        SUMMARY
+        =======
+
+        <N> of the <M> downstream commits are merged in the upstream.
+        <O> followup fixes found (<P> are not applied downstream)
+        <Q> followup mentions found (<R> are not applied downstream)
+    """
+
     if ['SUMMARY\n', '=======\n', '\n'] != lines[:3]:
         return None
 
@@ -31,37 +42,6 @@ def parse_summary(lines):
     summary.nr_mentioned_unapplied = int(lines[5].split()[4][1:])
 
     return summary
-
-def parse_refs(lines):
-    if len(lines) != 6:
-        print('refs lines should be 6')
-        exit(1)
-
-    upstream = None
-    downstream = None
-    hashes = {}
-
-    for line in lines:
-        if not line.startswith('# '):
-            print('refs line should be a comment but: %s' % line)
-            return None, None, None
-        fields = line[2:].strip().split(': ')
-        if len(fields) != 2:
-            print('invalid refs line: %s' % line)
-            return None, None, None
-
-        if not upstream:
-            upstream = fields[1].split('..')
-        elif not downstream:
-            downstream = fields[1].split('..')
-        else:
-            hashes[fields[0]] = fields[1]
-
-    for ref in upstream + downstream:
-        if not ref in hashes:
-            print('hash for ref %s not found' % ref)
-            return None, None, None
-    return upstream, downstream, hashes
 
 def commit_date(hashid, repo):
     cmd = 'git --git-dir=%s/.git log %s^..%s' % (repo, hashid, hashid)
@@ -78,28 +58,10 @@ def fmt_date_range(start, end):
     return '%s..%s' % (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
 
 def parse_pr_summary(prefix, output_lines, repo):
-    """
-    lines are supposed to be in below format:
-
-        # upstream: <ref1>..<ref2>
-        # downstream: <ref3>..<ref4>
-        # <ref1>: <hash of ref1>
-        # <ref2>: <hash of ref2>
-        # <ref3>: <hash of ref3>
-        # <ref4>: <hash of ref4>
-        # track for all downstream commits
-        [...]
-
-
-        SUMMARY
-        =======
-
-        <N> of the <M> downstream commits are merged in the upstream.
-        <O> followup fixes found (<P> are not applied downstream)
-        <Q> followup mentions found (<R> are not applied downstream)
-    """
-
-    upstream, downstream, hashes = parse_refs(output_lines[:6])
+    results = track_results.parse_track_results(output_lines, repo)
+    upstream = results.upstream
+    downstream = results.downstream
+    hashes = results.hashids
     if not upstream or not downstream or not hashes:
         return
 

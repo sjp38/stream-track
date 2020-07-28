@@ -175,6 +175,7 @@ def parse_track_results(results_lines, repo):
 
     result = None
     for line in results_lines:
+        line = line.strip()
         if line == '':
             break
         if line.startswith('# upstream: '):
