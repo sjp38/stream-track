@@ -83,7 +83,15 @@ class TrackResult:
 
         return '\n'.join(lines)
 
+title_hash_maps = {}
+
 def hash_by_title(title, revision_range, repo):
+    if not revision_range in title_hash_maps:
+        title_hash_maps[revision_range] = {}
+    cache = title_hash_maps[revision_range]
+    if title in cache:
+        return cache[title]
+
     keyword = title.replace('\'', '\'"\'"\'')
     cmd = 'git --git-dir=%s/.git log --oneline %s --abbrev=12' % (
             repo, revision_range)
@@ -98,6 +106,7 @@ def hash_by_title(title, revision_range, repo):
             if len(boundaries) == 2:
                 new_range = '%s..%s' % (boundaries[0], new_range)
             return hash_by_title(title, new_range, repo)
+        cache[title] = commit_hash
         return commit_hash
     except:
         return None
