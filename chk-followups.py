@@ -86,6 +86,53 @@ def pr_streams(upstream, downstream, repo):
         hash_ = hash_by_ref(ref, repo)
         print('# %s: %s' % (ref, hash_))
 
+def comm_rev_ranges(range1, range2, repo):
+    "Return common part in two revision ranges"
+    if len(range1) == 1:
+        range1 = [''] + range1
+    if len(range2) == 1:
+        range2 = [''] + range2
+
+    comm_end = None
+    if range1[1] == range2[1]:
+        comm_end = range1[1]
+    else:
+        cmd = 'git --git-dir=%s/.git merge-base %s %s' % (repo,
+                range1[1], range2[1])
+        comm_end = subprocess.check_output(cmd, shell=True).decode().strip()
+    if not comm_end:
+        return None
+
+    comm_start = None
+    if range1[0] == range2[0]:
+        comm_start = range1[0]
+    else:
+        cmd = 'git --git-dir=%s/.git log --pretty=%%h --abbrev=12 %s^..%s' % (
+                repo, range1[0], comm_end)
+        cmd += ' --first-parent'
+        range1_commits = subprocess.check_output(cmd, shell=True).decode().strip().split('\n')
+        cmd = 'git --git-dir=%s/.git log --pretty=%%h --abbrev=12 %s^..%s' % (
+                repo, range2[0], comm_end)
+        cmd += ' --first-parent'
+        range2_commits = subprocess.check_output(cmd, shell=True).decode().strip().split('\n')
+
+        if len(range1_commits) == 0 or len(range2_commits) == 0:
+            return None
+
+        if len(range1_commits) > len(range2_commits):
+            shorter = range2_commits
+            longer = range1_commits
+        else:
+            shorter = range1_commits
+            longer = range2_commits
+
+        comm_start = shorter[-1]
+        for idx, r in enumerate(shorter):
+            if r != longer[idx]:
+                comm_start = longer[idx - 1]
+
+    return [comm_start, comm_end]
+
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
     if prev_results and title in prev_results.results:
@@ -95,6 +142,66 @@ def track(title, repo, upstream, downstream, downstream_prefix,
         now_dn = [hash_by_ref(x, repo) for x in downstream.split('..')]
         if prev_up == now_up and prev_dn == now_dn:
             return prev_results.results[title]
+
+        pres = prev_results.results[title]
+        comm = comm_rev_ranges(prev_up, now_up, repo)
+        # exclude track results made with prev_up[0]..comm[0] and comm[1]..prev_up[1]
+        exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
+                '%s..%s' % (comm[1], prev_up[1])]
+        for r in exclude_ranges:
+            if hash_by_title(title, r, repo):
+                # it's downstream only now
+                return TrackResult(None)
+            filtered_followups = []
+            for f in pres.followup_fixes:
+                if hash_by_title(f[0].title, r, repo):
+                    # the followup is not in the new upstream
+                    continue
+                filtered_followups.append(f)
+            pres.followup_fixes = filtered_followups
+
+            filtered_followups = []
+            for f in pres.followup_mentions:
+                if hash_by_title(f[0].title, r, repo):
+                    # the followup is not in the new upstream
+                    continue
+                filtered_followups.append(f)
+            pres.followup_mentions = filtered_followups
+
+        # include track results in now_up[0]..comm[0] and comm[1]..now_up[1]
+        include_ranges = ['%s..%s' % (now_up[0], comm[0]), '%s..%s' % (comm[1], now_up[1])]
+        for r in include_ranges:
+            h = hash_by_title(title, r, repo)
+            if not h:
+                continue
+            c = Commit(h, repo)
+            pres.upstream_commit = c
+            new_result = track_commit(c, repo, r, downstream, check_all_files)
+            pres.followup_fixes += new_result.followup_fixes
+            pres.followup_mentions += new_result.followup_mentions
+
+        comm = comm_rev_ranges(prev_dn, now_dn, repo)
+        # exclude track results made with prev_dn[0]..comm[0] and comm[1]..prev_dn[1]
+        exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
+                '%s..%s' % (comm[1], prev_dn[1])]
+        for r in exclude_ranges:
+            for f in pres.followup_fixes + pres.followup_mentions:
+                if f[1]:
+                    if hash_by_title(f[0].title, r, repo):
+                        # the backport of the followup is not in the current downstream
+                        f[1] = None
+
+        # include track results in now_dn[0]..comm[0] and comm[1]..now_dn[1]
+        include_ranges = ['%s..%s' % (now_dn[0], comm[0]), '%s..%s' % (comm[1], now_dn[1])]
+        for r in include_ranges:
+            for f in pres.followup_fixes + pres.followup_mentions:
+                if not f[1]:
+                    h = hash_by_title(f[0].title, r, repo)
+                    if h:
+                        # the backport of the followup is made in the current downstream
+                        f[1] = h
+
+        return pres
 
     if downstream_prefix and title.startswith(downstream_prefix):
         h = None
