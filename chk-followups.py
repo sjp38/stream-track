@@ -90,8 +90,10 @@ def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
     if prev_results and title in prev_results.results:
         prev_up = [prev_results.hashids[x] for x in prev_results.upstream]
+        prev_dn = [prev_results.hashids[x] for x in prev_results.downstream]
         now_up = [hash_by_ref(x, repo) for x in upstream.split('..')]
-        if prev_up == now_up:
+        now_dn = [hash_by_ref(x, repo) for x in downstream.split('..')]
+        if prev_up == now_up and prev_dn == now_dn:
             return prev_results.results[title]
 
     if downstream_prefix and title.startswith(downstream_prefix):
