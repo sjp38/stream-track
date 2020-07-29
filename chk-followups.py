@@ -46,10 +46,6 @@ def hashes_in(base, to, repo, target_files):
     return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
 def track_commit(commit, repo, upstream, downstream, track_all_files, prev_res):
-    if prev_res and commit.title in prev_res.results:
-        if same_streams(prev_res, upstream, downstream, repo):
-            return prev_res.results[commit.title]
-
     result = TrackResult(commit)
 
     files = ''
@@ -101,6 +97,10 @@ def same_streams(prev_results, upstream, downstream, repo):
 
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
+    if prev_results and title in prev_results.results:
+        if same_streams(prev_results, upstream, downstream, repo):
+            return prev_results.results[title]
+
     if downstream_prefix and title.startswith(downstream_prefix):
         h = None
     else:
