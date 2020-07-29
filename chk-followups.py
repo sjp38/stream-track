@@ -45,7 +45,11 @@ def hashes_in(base, to, repo, target_files):
         git_cmd += ['--'] + target_files.split()
     return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
-def track(commit, repo, upstream, downstream, track_all_files):
+def track(commit, repo, upstream, downstream, track_all_files, prev_res):
+    if prev_res and commit.title in prev_res.results:
+        if same_streams(prev_res, upstream, downstream, repo):
+            return prev_res.results[commit.title]
+
     result = TrackResult(commit)
 
     files = ''
@@ -142,13 +146,15 @@ def main():
 
     pr_streams(upstream, downstream, repo)
 
+    prev_res = None
+    if args.prev_results:
+        with open(args.prev_results, 'r') as f:
+            prev_res = parse_track_results(f.readlines(), repo)
+
     if not args.titles:
-        if args.prev_results:
-            with open(args.prev_results, 'r') as f:
-                prev_res = parse_track_results(f.readlines(), repo)
-                if (same_streams(prev_res, upstream, downstream, repo)):
-                    print(prev_res)
-                    exit(0)
+        if (prev_res and same_streams(prev_res, upstream, downstream, repo)):
+            print(prev_res)
+            exit(0)
 
         print('# track for all downstream commits')
         if not downstream in title_hash_maps:
@@ -185,7 +191,8 @@ def main():
             results[t] = TrackResult(None)
         else:
             c = Commit(h, repo)
-            results[t] = track(c, repo, upstream, downstream, args.all_files)
+            results[t] = track(c, repo, upstream, downstream, args.all_files,
+                    prev_res)
         r = results[t]
         if not args.followups_only or (r.followup_fixes or r.followup_mentions):
             print('%s #' % t, results[t])
