@@ -159,9 +159,14 @@ def main():
             prev_res = parse_track_results(f.readlines(), repo)
 
     if not args.titles:
-        if (prev_res and same_streams(prev_res, upstream, downstream, repo)):
-            print(prev_res)
-            exit(0)
+        if prev_res:
+            prev_up = [prev_res.hashids[x] for x in prev_res.upstream]
+            prev_dn = [prev_res.hashids[x] for x in prev_res.downstream]
+            now_up = [hash_by_ref(x, repo) for x in upstream.split('..')]
+            now_dn = [hash_by_ref(x, repo) for x in downstream.split('..')]
+            if prev_up == now_up and prev_dn == now_dn:
+                print(prev_res)
+                exit(0)
 
         print('# track for all downstream commits')
         if not downstream in title_hash_maps:
