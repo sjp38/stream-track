@@ -135,6 +135,8 @@ def comm_rev_ranges(range1, range2, repo):
 
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
+    track.upstreams_comm = None
+    track.downstreams_comm = None
     if prev_results and title in prev_results.results:
         prev_up = [prev_results.hashids[x] for x in prev_results.upstream]
         prev_dn = [prev_results.hashids[x] for x in prev_results.downstream]
@@ -144,7 +146,9 @@ def track(title, repo, upstream, downstream, downstream_prefix,
             return prev_results.results[title]
 
         pres = prev_results.results[title]
-        comm = comm_rev_ranges(prev_up, now_up, repo)
+        if not track.upstreams_comm:
+            track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
+        comm = track.upstreams_comm
         # exclude track results made with prev_up[0]..comm[0] and comm[1]..prev_up[1]
         exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
                 '%s..%s' % (comm[1], prev_up[1])]
@@ -180,7 +184,9 @@ def track(title, repo, upstream, downstream, downstream_prefix,
             pres.followup_fixes += new_result.followup_fixes
             pres.followup_mentions += new_result.followup_mentions
 
-        comm = comm_rev_ranges(prev_dn, now_dn, repo)
+        if not track.downstreams_comm:
+            track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
+        comm = track.downstreams_comm
         # exclude track results made with prev_dn[0]..comm[0] and comm[1]..prev_dn[1]
         exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
                 '%s..%s' % (comm[1], prev_dn[1])]
