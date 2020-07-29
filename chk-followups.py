@@ -45,7 +45,7 @@ def hashes_in(base, to, repo, target_files):
         git_cmd += ['--'] + target_files.split()
     return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
-def track_commit(commit, repo, upstream, downstream, track_all_files, prev_res):
+def track_commit(commit, repo, upstream, downstream, track_all_files):
     result = TrackResult(commit)
 
     files = ''
@@ -104,8 +104,7 @@ def track(title, repo, upstream, downstream, downstream_prefix,
     if not h:
         return TrackResult(None)
     c = Commit(h, repo)
-    return track_commit(c, repo, upstream, downstream, check_all_files,
-            prev_results)
+    return track_commit(c, repo, upstream, downstream, check_all_files)
 
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
