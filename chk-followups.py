@@ -234,7 +234,7 @@ def set_argparser(parser):
     parser.add_argument('--titles', metavar='<title>',
             help='the titles of the downstream commits to track for')
     parser.add_argument('--prev_results', metavar='<file>',
-            help='the file containing previous result')
+            help='use the previous result for speedup of the check')
 
     parser.add_argument('--followups_only', action='store_true',
             help='do not print commits having no followups')
