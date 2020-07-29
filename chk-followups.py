@@ -133,91 +133,96 @@ def comm_rev_ranges(range1, range2, repo):
 
     return [comm_start, comm_end]
 
+def track_from_scratch(title, repo, upstream, downstream, check_all_files):
+    h = hash_by_title(title, upstream, repo)
+    if not h:
+        return TrackResult(None)
+
+    c = Commit(h, repo)
+    return track_commit(c, repo, upstream, downstream, check_all_files)
+
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
     track.upstreams_comm = None
     track.downstreams_comm = None
-    if prev_results and title in prev_results.results:
-        prev_up = [prev_results.hashids[x] for x in prev_results.upstream]
-        prev_dn = [prev_results.hashids[x] for x in prev_results.downstream]
-        now_up = [hash_by_ref(x, repo) for x in upstream.split('..')]
-        now_dn = [hash_by_ref(x, repo) for x in downstream.split('..')]
-        if prev_up == now_up and prev_dn == now_dn:
-            return prev_results.results[title]
-
-        pres = prev_results.results[title]
-        if not track.upstreams_comm:
-            track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
-        comm = track.upstreams_comm
-        # exclude track results made with prev_up[0]..comm[0] and comm[1]..prev_up[1]
-        exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
-                '%s..%s' % (comm[1], prev_up[1])]
-        for r in exclude_ranges:
-            if hash_by_title(title, r, repo):
-                # it's downstream only now
-                return TrackResult(None)
-            filtered_followups = []
-            for f in pres.followup_fixes:
-                if hash_by_title(f[0].title, r, repo):
-                    # the followup is not in the new upstream
-                    continue
-                filtered_followups.append(f)
-            pres.followup_fixes = filtered_followups
-
-            filtered_followups = []
-            for f in pres.followup_mentions:
-                if hash_by_title(f[0].title, r, repo):
-                    # the followup is not in the new upstream
-                    continue
-                filtered_followups.append(f)
-            pres.followup_mentions = filtered_followups
-
-        # include track results in now_up[0]..comm[0] and comm[1]..now_up[1]
-        include_ranges = ['%s..%s' % (now_up[0], comm[0]), '%s..%s' % (comm[1], now_up[1])]
-        for r in include_ranges:
-            h = hash_by_title(title, r, repo)
-            if not h:
-                continue
-            c = Commit(h, repo)
-            pres.upstream_commit = c
-            new_result = track_commit(c, repo, r, downstream, check_all_files)
-            pres.followup_fixes += new_result.followup_fixes
-            pres.followup_mentions += new_result.followup_mentions
-
-        if not track.downstreams_comm:
-            track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
-        comm = track.downstreams_comm
-        # exclude track results made with prev_dn[0]..comm[0] and comm[1]..prev_dn[1]
-        exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
-                '%s..%s' % (comm[1], prev_dn[1])]
-        for r in exclude_ranges:
-            for f in pres.followup_fixes + pres.followup_mentions:
-                if f[1]:
-                    if hash_by_title(f[0].title, r, repo):
-                        # the backport of the followup is not in the current downstream
-                        f[1] = None
-
-        # include track results in now_dn[0]..comm[0] and comm[1]..now_dn[1]
-        include_ranges = ['%s..%s' % (now_dn[0], comm[0]), '%s..%s' % (comm[1], now_dn[1])]
-        for r in include_ranges:
-            for f in pres.followup_fixes + pres.followup_mentions:
-                if not f[1]:
-                    h = hash_by_title(f[0].title, r, repo)
-                    if h:
-                        # the backport of the followup is made in the current downstream
-                        f[1] = h
-
-        return pres
 
     if downstream_prefix and title.startswith(downstream_prefix):
-        h = None
-    else:
-        h = hash_by_title(title, upstream, repo)
-
-    if not h:
         return TrackResult(None)
-    c = Commit(h, repo)
-    return track_commit(c, repo, upstream, downstream, check_all_files)
+
+    if not prev_results or not title in prev_results.results:
+        return track_from_scratch(title, repo, upstream, downstream,
+                check_all_files)
+
+    prev_up = [prev_results.hashids[x] for x in prev_results.upstream]
+    prev_dn = [prev_results.hashids[x] for x in prev_results.downstream]
+    now_up = [hash_by_ref(x, repo) for x in upstream.split('..')]
+    now_dn = [hash_by_ref(x, repo) for x in downstream.split('..')]
+    if prev_up == now_up and prev_dn == now_dn:
+        return prev_results.results[title]
+
+    pres = prev_results.results[title]
+    if not track.upstreams_comm:
+        track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
+    comm = track.upstreams_comm
+    # exclude track results made with prev_up[0]..comm[0] and comm[1]..prev_up[1]
+    exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
+            '%s..%s' % (comm[1], prev_up[1])]
+    for r in exclude_ranges:
+        if hash_by_title(title, r, repo):
+            # it's downstream only now
+            return TrackResult(None)
+        filtered_followups = []
+        for f in pres.followup_fixes:
+            if hash_by_title(f[0].title, r, repo):
+                # the followup is not in the new upstream
+                continue
+            filtered_followups.append(f)
+        pres.followup_fixes = filtered_followups
+
+        filtered_followups = []
+        for f in pres.followup_mentions:
+            if hash_by_title(f[0].title, r, repo):
+                # the followup is not in the new upstream
+                continue
+            filtered_followups.append(f)
+        pres.followup_mentions = filtered_followups
+
+    # include track results in now_up[0]..comm[0] and comm[1]..now_up[1]
+    include_ranges = ['%s..%s' % (now_up[0], comm[0]), '%s..%s' % (comm[1], now_up[1])]
+    for r in include_ranges:
+        h = hash_by_title(title, r, repo)
+        if not h:
+            continue
+        c = Commit(h, repo)
+        pres.upstream_commit = c
+        new_result = track_commit(c, repo, r, downstream, check_all_files)
+        pres.followup_fixes += new_result.followup_fixes
+        pres.followup_mentions += new_result.followup_mentions
+
+    if not track.downstreams_comm:
+        track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
+    comm = track.downstreams_comm
+    # exclude track results made with prev_dn[0]..comm[0] and comm[1]..prev_dn[1]
+    exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
+            '%s..%s' % (comm[1], prev_dn[1])]
+    for r in exclude_ranges:
+        for f in pres.followup_fixes + pres.followup_mentions:
+            if f[1]:
+                if hash_by_title(f[0].title, r, repo):
+                    # the backport of the followup is not in the current downstream
+                    f[1] = None
+
+    # include track results in now_dn[0]..comm[0] and comm[1]..now_dn[1]
+    include_ranges = ['%s..%s' % (now_dn[0], comm[0]), '%s..%s' % (comm[1], now_dn[1])]
+    for r in include_ranges:
+        for f in pres.followup_fixes + pres.followup_mentions:
+            if not f[1]:
+                h = hash_by_title(f[0].title, r, repo)
+                if h:
+                    # the backport of the followup is made in the current downstream
+                    f[1] = h
+
+    return pres
 
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
