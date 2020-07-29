@@ -45,7 +45,7 @@ def hashes_in(base, to, repo, target_files):
         git_cmd += ['--'] + target_files.split()
     return subprocess.check_output(git_cmd).decode().strip().split('\n')
 
-def track(commit, repo, upstream, downstream, track_all_files, prev_res):
+def track_commit(commit, repo, upstream, downstream, track_all_files, prev_res):
     if prev_res and commit.title in prev_res.results:
         if same_streams(prev_res, upstream, downstream, repo):
             return prev_res.results[commit.title]
@@ -98,6 +98,19 @@ def same_streams(prev_results, upstream, downstream, repo):
     dnstream = [hash_by_ref(r, repo) for r in downstream.split('..')]
 
     return prev_upstream == upstream and prev_dnstream == dnstream
+
+def track(title, repo, upstream, downstream, downstream_prefix,
+        check_all_files, prev_results):
+    if downstream_prefix and title.startswith(downstream_prefix):
+        h = None
+    else:
+        h = hash_by_title(title, upstream, repo)
+
+    if not h:
+        return TrackResult(None)
+    c = Commit(h, repo)
+    return track_commit(c, repo, upstream, downstream, check_all_files,
+            prev_results)
 
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
@@ -182,17 +195,8 @@ def main():
     track_results.results = results
 
     for t in titles:
-        if args.downstream_prefix and t.startswith(args.downstream_prefix):
-            h = None
-        else:
-            h = hash_by_title(t, upstream, repo)
-
-        if not h:
-            results[t] = TrackResult(None)
-        else:
-            c = Commit(h, repo)
-            results[t] = track(c, repo, upstream, downstream, args.all_files,
-                    prev_res)
+        results[t] = track(t, repo, upstream, downstream,
+                args.downstream_prefix, args.all_files, prev_res)
         r = results[t]
         if not args.followups_only or (r.followup_fixes or r.followup_mentions):
             print('%s #' % t, results[t])
