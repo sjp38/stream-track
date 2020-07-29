@@ -86,19 +86,12 @@ def pr_streams(upstream, downstream, repo):
         hash_ = hash_by_ref(ref, repo)
         print('# %s: %s' % (ref, hash_))
 
-def same_streams(prev_results, upstream, downstream, repo):
-    prev_upstream = [prev_results.hashids[x] for x in prev_results.upstream]
-    prev_dnstream = [prev_results.hashids[x] for x in prev_results.downstream]
-
-    upstream = [hash_by_ref(r, repo) for r in upstream.split('..')]
-    dnstream = [hash_by_ref(r, repo) for r in downstream.split('..')]
-
-    return prev_upstream == upstream and prev_dnstream == dnstream
-
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
     if prev_results and title in prev_results.results:
-        if same_streams(prev_results, upstream, downstream, repo):
+        prev_up = [prev_results.hashids[x] for x in prev_results.upstream]
+        now_up = [hash_by_ref(x, repo) for x in upstream.split('..')]
+        if prev_up == now_up:
             return prev_results.results[title]
 
     if downstream_prefix and title.startswith(downstream_prefix):
