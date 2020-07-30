@@ -164,7 +164,8 @@ def track(title, repo, upstream, downstream, downstream_prefix,
     if not track.upstreams_comm:
         track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
     comm = track.upstreams_comm
-    # exclude track results made with prev_up[0]..comm[0] and comm[1]..prev_up[1]
+
+    # exclude track results that invalid due to changed upstream range
     exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
             '%s..%s' % (comm[1], prev_up[1])]
     for r in exclude_ranges:
@@ -187,8 +188,9 @@ def track(title, repo, upstream, downstream, downstream_prefix,
             filtered_followups.append(f)
         pres.followup_mentions = filtered_followups
 
-    # include track results in now_up[0]..comm[0] and comm[1]..now_up[1]
-    include_ranges = ['%s..%s' % (now_up[0], comm[0]), '%s..%s' % (comm[1], now_up[1])]
+    # include new followups made due to the changed upstream range
+    include_ranges = ['%s..%s' % (now_up[0], comm[0]),
+            '%s..%s' % (comm[1], now_up[1])]
     for r in include_ranges:
         h = hash_by_title(title, r, repo)
         if not h:
@@ -202,25 +204,23 @@ def track(title, repo, upstream, downstream, downstream_prefix,
     if not track.downstreams_comm:
         track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
     comm = track.downstreams_comm
-    # exclude track results made with prev_dn[0]..comm[0] and comm[1]..prev_dn[1]
+
+    # exclude followup backports that invalid due to the changed downstream
     exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
             '%s..%s' % (comm[1], prev_dn[1])]
     for r in exclude_ranges:
         for f in pres.followup_fixes + pres.followup_mentions:
-            if f[1]:
-                if hash_by_title(f[0].title, r, repo):
-                    # the backport of the followup is not in the current downstream
-                    f[1] = None
+            if f[1] and hash_by_title(f[0].title, r, repo):
+                # the backport of the followup is not in the current downstream
+                f[1] = None
 
-    # include track results in now_dn[0]..comm[0] and comm[1]..now_dn[1]
-    include_ranges = ['%s..%s' % (now_dn[0], comm[0]), '%s..%s' % (comm[1], now_dn[1])]
+    # include followup backports that made by the changed downstream range
+    include_ranges = ['%s..%s' % (now_dn[0], comm[0]), '%s..%s' % (
+        comm[1], now_dn[1])]
     for r in include_ranges:
         for f in pres.followup_fixes + pres.followup_mentions:
             if not f[1]:
-                h = hash_by_title(f[0].title, r, repo)
-                if h:
-                    # the backport of the followup is made in the current downstream
-                    f[1] = h
+                f[1] = hash_by_title(f[0].title, r, repo)
 
     return pres
 
