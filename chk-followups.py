@@ -143,8 +143,6 @@ def track_from_scratch(title, repo, upstream, downstream, check_all_files):
 
 def track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
-    track.upstreams_comm = None
-    track.downstreams_comm = None
 
     if downstream_prefix and title.startswith(downstream_prefix):
         return TrackResult(None)
@@ -223,6 +221,8 @@ def track(title, repo, upstream, downstream, downstream_prefix,
                 f[1] = hash_by_title(f[0].title, r, repo)
 
     return pres
+track.upstreams_comm = None
+track.downstreams_comm = None
 
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
