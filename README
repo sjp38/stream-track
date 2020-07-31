@@ -52,3 +52,35 @@ example:
     KEYS: Don't write out to userspace while holding key semaphore # mentioned,unmerged
       mentions unmerged
         4c205c84e249 ("Merge tag 'keys-fixes-20200329' of git://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs")
+
+Speed Optimization
+==================
+
+Because this tool should read each commits in the downstream revision range and
+the upstream revision range, the runtime can be so long in many cases.  For
+example, tracking for 4.9 stable releases (v4.9..stable/linux-4.9.y as
+downstream and v4.10..linux/master as upstream) takes more than 10 hours on
+some computers.  We provide some optimization tricks for the runtime reduction.
+
+Dedicated Downstream Only Commit Prefix
+---------------------------------------
+
+For each of the downstream commits, the tool first checks whether the commit is
+backported from the upstream or not.  If not, it couldn't have followup and
+therefore the check is finished.  If the number of downstream only commit is
+high in your case, most of the tracking time will be used for this check.
+
+Some people use a dedicated prefix in the commit title to easily distinguish
+the downstream only commits from backported commits.  If you are also using
+this strategy, you could let the tool know this by using '--downstream_prefix'
+option of 'chk-followups.py'.  If it is given, the tool will be able to know
+the commit is downstream only by simply reading the title.
+
+Using Previous Results as a Cache
+---------------------------------
+
+The tracking will be periodically repeated, as the upstream will keep changing.
+In that case, as the ranges of the downstream and the downstream will only
+subtly changed, the tracking could be finished shortly if we can use the
+previous tracking results.  You can let the tool to know the previous tracking
+results using '--prev_results' option of 'chk-followups.py'.
