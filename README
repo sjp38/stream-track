@@ -93,8 +93,8 @@ Users would repeatedly do the tracking, as long as the upstream is live and
 keep changing.  Because the purpose of the repeated tracking is only finding
 new followups, the 'chk-followups.py' outputs of each repeated runs would be
 too verbose.  You can get a summary of the outputs by storing the outputs in
-files and giving the list of the files to 'summary_outputs.py'.  The format of
-the summary is as below:
+files and giving the list of the files to 'summary_outputs.py'.  The summary
+will be something like below:
 
     # cmmt: The downstream commits
     # port: The downstream commits back-ported from the upstream
@@ -111,6 +111,3 @@ the summary is as below:
     2020-07-23/5.4-stable   6848    4434    139     10      65      16      # up: 2020-01-26..2020-07-23 dn: 2019-11-24..2020-07-22
     2020-07-25/5.4-stable   6848    4434    145     16      66      17      # up: 2020-01-26..2020-07-25 dn: 2019-11-24..2020-07-22
     2020-07-27/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
-    2020-07-28/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
-    2020-07-29/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
-    2020-07-30/5.4-stable   0       0       0       0       0       0       # up: 2020-01-26..2020-07-30 dn: 2019-11-24..2020-07-29
