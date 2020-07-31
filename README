@@ -85,3 +85,32 @@ In that case, as the ranges of the downstream and the downstream will only
 subtly changed, the tracking could be finished shortly if we can use the
 previous tracking results.  You can let the tool to know the previous tracking
 results using '--prev_results' option of 'chk-followups.py'.
+
+Summarizing Repeated Tracking Results
+=====================================
+
+Users would repeatedly do the tracking, as long as the upstream is live and
+keep changing.  Because the purpose of the repeated tracking is only finding
+new followups, the 'chk-followups.py' outputs of each repeated runs would be
+too verbose.  You can get a summary of the outputs by storing the outputs in
+files and giving the list of the files to 'summary_outputs.py'.  The format of
+the summary is as below:
+
+    # cmmt: The downstream commits
+    # port: The downstream commits back-ported from the upstream
+    # fixs: The upstream commits fixing the 'port'
+    # ufix: 'fixs' that unapplied in the downstream
+    # mntn: The upstream commits mentioning the 'port'
+    # umnt: 'mntn' that unapplied in the downstream
+    #
+                 file       cmmt    port    fixs    ufix    mntn    umnt
+    2020-07-16/5.4-stable   6633    4229    131     18      62      15      # up: 2020-01-26..2020-07-15 dn: 2019-11-24..2020-07-16
+    2020-07-17/5.4-stable   6633    4229    132     19      62      15      # up: 2020-01-26..2020-07-17 dn: 2019-11-24..2020-07-16
+    2020-07-19/5.4-stable   6633    4229    132     19      62      15      # up: 2020-01-26..2020-07-19 dn: 2019-11-24..2020-07-16
+    2020-07-21/5.4-stable   6633    4229    133     20      62      15      # up: 2020-01-26..2020-07-20 dn: 2019-11-24..2020-07-16
+    2020-07-23/5.4-stable   6848    4434    139     10      65      16      # up: 2020-01-26..2020-07-23 dn: 2019-11-24..2020-07-22
+    2020-07-25/5.4-stable   6848    4434    145     16      66      17      # up: 2020-01-26..2020-07-25 dn: 2019-11-24..2020-07-22
+    2020-07-27/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
+    2020-07-28/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
+    2020-07-29/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
+    2020-07-30/5.4-stable   0       0       0       0       0       0       # up: 2020-01-26..2020-07-30 dn: 2019-11-24..2020-07-29
