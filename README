@@ -1,29 +1,33 @@
-This directory contains tools finding upstream commits that fixes or mentions
-specific downstream commits and checking whether the followup changes in the
-upstream are already in your downstream tree.
+This directory contains tools for finding upstream commits that fixes or
+mentions specific downstream commits and checking whether the followup changes
+in the upstream are already in your downstream tree.
 
-Suppose that you are developing your custom linux kernel on a branch based on a
-v5.4 stable release.  You periodically rebase your work on latest 5.4 stable
-release to ensure your kernel is safe.  But, you also back-ported some commits
-from v5.5.  Now the periodic rebasing cannot ensure you have all necessary
-fixes in your kernel, as the fixes for the back-ported commits will not land on
-5.4 stable releases.  This problem case is not only linux kernel project
-specific but general for many open source projects.  The tools can help finding
-such commits.
+The Workflow
+============
+
+Suppose that you are developing your custom linux kernel based on the v5.4
+linux kernel.  You would periodically rebase your work on latest 5.4 stable
+release[1] to ensure your kernel is safe.  But, you would also back-port some
+commits from v5.5.  Then, the periodic rebasing cannot ensure you have all
+necessary fixes in your kernel, as the fixes for v5.5 do not land on 5.4 stable
+releases.  This problem case is not only linux kernel specific but general to
+many open source projects.  The tools can help you finding such commits.
+
+[1] https://www.kernel.org/releases.html
 
 Getting Started
 ===============
 
-Let's suppose your kernel repo is at '$HOME/linux' and tracking the mainline
+Let's suppose your kernel repo is at '$LINUX' and tracking the mainline
 tree with a remote name 'mainline'.  Your working branch is named 'hack' and
-based on v5.4.42.  Set PATH to point this directory, move to your kernel source
-tree and run below command:
+based on v5.4.42.  Set 'PATH' to point this directory, move to your kernel
+source tree and run below command:
 
-    $ ./chk-followups.py --repo $HOME/linux \
+    $ chk-followups.py --repo $LINUX \
             --downstream v5.4.42..hack --upstream v5.5..mainline/master
 
-Above command will do the check for all commits in 'v5.4.42..hack' against all
-commits in 'v5.5..mainline/master'.
+It will do the check for all commits in 'v5.4.42..hack' against all commits in
+'v5.5..mainline/master'.
 
 Output Format
 -------------
@@ -34,15 +38,13 @@ with a combination of below tags:
  - downstream_only: The commit is in the downstream only.  Maybe you made this
    change on your own.
  - no_followup: The upstream has no commits for the commit.
- - fixed: There are upstream commits fixing the commit.  This is classified by
-   checking the 'Fixes' tag.
- - mentioned: There are upstream commits mentioning the commit.  This could be
-   non-fixes (e.g., merge), but would be worth to check.
- - unmerged: The followup commit is not merged in the downstream.  You should
-   carefully check how things are going on.
+ - fixed: There are upstream commits fixing the commit.
+ - mentioned: There are upstream commits mentioning the commit.  This could
+   include non-fixes (e.g., merge), but would be worth to check.
+ - unmerged: The followup commit is not merged in the downstream.
 
-In case of fixed or mentioned, the followup commits will also be listed.  For
-example:
+In case of 'fixed' or 'mentioned', the followup commits will also be listed.
+For example:
 
     x86/unwind/orc: Prevent unwinding before ORC initialization # fixed
       fixes merged
@@ -54,37 +56,48 @@ example:
       mentions unmerged
         4c205c84e249 ("Merge tag 'keys-fixes-20200329' of git://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs")
 
+The downstream commit titled 'x86/unwind/orc: Prevent unwinding...' is fixed by
+the upstream commit 71c95825289f and already merged in the downstream (SAFE).
+However, the downstream commit titled 'bnxt_en: Improve AER slot reset.' is
+fixed by the upstream commit 6e2f83884c09 and not merged in the downstream.
+You should carefully check the upstream commit whether it needs to be merged in
+the downstream or not.
+
 Speed Optimization
 ==================
 
 Because 'chk-followups.py' should read each commits in the downstream revision
-range and the upstream revision range, the runtime can be so long in many
-cases.  For example, tracking for 4.9 stable releases (v4.9..stable/linux-4.9.y
-as downstream and v4.10..linux/master as upstream) takes more than 10 hours on
-some computers.  We provide some optimization tricks for the runtime reduction.
+range and the upstream revision range, the runtime can be so long depending on
+the size of the streams.  For example, as of 2020-08-01, tracking 4.9 stable
+releases (v4.9..stable/linux-4.9.y as downstream and v4.10..linux/master as
+upstream) takes more than 10 hours on some machines.  We provide a number of
+ways to reduce the runtime.
 
-Dedicated Downstream Only Commit Prefix
+Dedicated Downstream-only Commit Prefix
 ---------------------------------------
 
 For each of the downstream commits, the tool first checks whether the commit is
 backported from the upstream or not.  If not, it couldn't have followup and
-therefore the check is finished.  If the number of downstream only commit is
-high in your case, most of the tracking time will be used for this check.
+therefore the check is finished.  The time for this increases as the number of
+the upstream commits grows.  If the number of downstream-only commit is high in
+your case, most of the tracking time will be used for this check.
 
-Some people use a dedicated prefix in the commit title to easily distinguish
-the downstream only commits from backported commits.  If you are also using
-this strategy, you could let the tool know this by using '--downstream_prefix'
-option of 'chk-followups.py'.  If it is given, the tool will be able to know
-the commit is downstream only by simply reading the title.
+For some reasons, some teams mark their downstream-only commits by adding a
+dedicated prefix such as team name or product name in fron of the commit
+titles.  If you are also using this strategy, you could let the tool know this
+by using '--downstream_prefix' option of 'chk-followups.py'.  If it is given,
+the tool will be able to know if a commit is downstream-only by reading the
+title.
 
 Using Previous Results as a Cache
 ---------------------------------
 
-The tracking will be periodically repeated, as the upstream will keep changing.
-In that case, as the ranges of the downstream and the downstream will only
-subtly changed, the tracking could be finished shortly if we can use the
-previous tracking results.  You can let the tool to know the previous tracking
-results using '--prev_results' option of 'chk-followups.py'.
+The tracking should be periodically repeated, as the upstream will keep
+changing.  In that case, as the ranges of the downstream and the upstream will
+only subtly changed between the iterations, the tracking could be finished
+shortly if we can use the previous tracking results.  You can let the tool to
+know the previous tracking results using '--prev_results' option of
+'chk-followups.py'.
 
 Summarizing Repeated Tracking Results
 =====================================
