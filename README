@@ -124,3 +124,35 @@ will be something like below:
     2020-07-23/5.4-stable   6848    4434    139     10      65      16      # up: 2020-01-26..2020-07-23 dn: 2019-11-24..2020-07-22
     2020-07-25/5.4-stable   6848    4434    145     16      66      17      # up: 2020-01-26..2020-07-25 dn: 2019-11-24..2020-07-22
     2020-07-27/5.4-stable   6848    4434    147     18      70      21      # up: 2020-01-26..2020-07-26 dn: 2019-11-24..2020-07-22
+
+Similar Tools
+=============
+
+Because the problem case is quite general, there could be similar tools.  This
+section lists those and compare the tools in this directory (stream-track)
+against those, so that you can choose the right tool for your case.  The
+comparison is based on only my sheer understanding of the tools only, so there
+could be many wrong points.  If you find such things, please let me know.
+
+git-fixes
+---------
+
+git-fixes[1] is a matured tool developed by Jörg Rödel.  The main job of the
+tool is quite similar to that of stream-track: "finding upstream fixes for
+backported commits."
+
+The biggest difference between it and stream-fix is the language.  git-fixes is
+almost written in CPP while stream-track is almost Python.  For the reason,
+git-fixes would be faster in general, though stream-track also provides some
+performance optimization tricks.  However, stream-track would be easier to be
+modified by users for special use cases of them.
+
+There are small differences in the usage and the fixes identification logic,
+but seems those of git-fixes is optimized for SUSE kernel.  Meanwhile,
+stream-track is designed for kaos (this is not a typo, but reading it as chaos
+still works) rather than cleanly managed trees.
+
+In summary, stream-track might be unmatured and slow (the design is made for
+only daily tracking) but flexible and easier to apply, compared to git-fixes.
+
+[1] https://github.com/joergroedel/git-fixes
