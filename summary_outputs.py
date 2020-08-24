@@ -90,7 +90,7 @@ def set_argparser(parser):
     parser.add_argument('outputs', metavar='<file>', nargs='+',
             help='files containing output of chk-followups.py')
     parser.add_argument('--repo', metavar='<path>', default='./',
-            help='path to the kernel source git repo')
+            help='path to the tracking git repo')
     parser.add_argument('--brief', action='store_true',
             help='exclude comments and legends from the output')
 
