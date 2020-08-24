@@ -215,7 +215,7 @@ def parse_track_results(results_lines, repo):
                     result.followup_fixes.append(followup)
             else:
                 result = None
-        else:
+        if not result:
             comments_start = line.rfind(' # ')
             title = line[:comments_start]
             comment = line[comments_start + 3:]
