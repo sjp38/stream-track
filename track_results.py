@@ -224,4 +224,3 @@ def parse_track_results(results_lines, repo):
             if comment not in ['downstream_only', 'no_followup']:
                 result = results[title]
     return parsed
-
