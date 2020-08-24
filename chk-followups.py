@@ -75,8 +75,15 @@ def track_commit(commit, repo, upstream, downstream, track_all_files):
     return result
 
 def hash_by_ref(reference, repo):
+    if not repo in hash_by_ref.cache:
+        hash_by_ref.cache[repo] = {}
+    if reference in hash_by_ref.cache[repo]:
+        return hash_by_ref.cache[repo][reference]
+
     cmd = 'git --git-dir=%s/.git rev-parse %s' % (repo, reference)
-    return subprocess.check_output(cmd, shell=True).decode().strip()
+    hashid = subprocess.check_output(cmd, shell=True).decode().strip()
+    hash_by_ref.cache[repo][reference] = hashid
+hash_by_ref.cache = {}
 
 def pr_streams(upstream, downstream, repo):
     print('# upstream: %s' % upstream)
