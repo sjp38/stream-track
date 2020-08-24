@@ -238,6 +238,8 @@ def set_argparser(parser):
 
     parser.add_argument('--followups_only', action='store_true',
             help='do not print commits having no followups')
+    parser.add_argument('--highlight_skip_merged', action='store_true',
+            help='skip merged followups in the highlight section')
     parser.add_argument('--all_files', action='store_true',
             help='track whole files, rather than touched files only')
 
@@ -315,7 +317,8 @@ def main():
         print('HIGHLIGHTS')
         print('==========')
         print()
-        print('\n'.join(track_results.highlight_lines()))
+        print('\n'.join(track_results.highlight_lines(
+            args.highlight_skip_merged)))
     print()
     print()
     print('SUMMARY')

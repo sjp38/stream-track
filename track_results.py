@@ -102,12 +102,15 @@ class TrackResults:
             lines.append('%s # %s' % (t, self.results[t]))
         return lines
 
-    def highlight_lines(self):
+    def highlight_lines(self, skip_merged=False):
         results = self.results
         lines = []
         for title in results:
             r = results[title]
             if not r.followup_fixes and not r.followup_mentions:
+                continue
+            if skip_merged and len([x for x in
+                    r.followup_fixes + r.followup_mentions if not x[1]]) == 0:
                 continue
             lines.append('%s # %s' % (title, r))
         return lines
