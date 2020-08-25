@@ -149,7 +149,7 @@ def track_from_scratch(title, repo, upstream, downstream, check_all_files):
     c = Commit(h, repo)
     return track_commit(c, repo, upstream, downstream, check_all_files)
 
-def track(title, repo, upstream, downstream, downstream_prefix,
+def do_track(title, repo, upstream, downstream, downstream_prefix,
         check_all_files, prev_results):
 
     if downstream_prefix and title.startswith(downstream_prefix):
@@ -167,9 +167,9 @@ def track(title, repo, upstream, downstream, downstream_prefix,
         return prev_results.results[title]
 
     pres = prev_results.results[title]
-    if not track.upstreams_comm:
-        track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
-    comm = track.upstreams_comm
+    if not do_track.upstreams_comm:
+        do_track.upstreams_comm = comm_rev_ranges(prev_up, now_up, repo)
+    comm = do_track.upstreams_comm
 
     # exclude track results that invalid due to changed upstream range
     exclude_ranges = ['%s..%s' % (prev_up[0], comm[0]),
@@ -207,9 +207,9 @@ def track(title, repo, upstream, downstream, downstream_prefix,
         pres.followup_fixes += new_result.followup_fixes
         pres.followup_mentions += new_result.followup_mentions
 
-    if not track.downstreams_comm:
-        track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
-    comm = track.downstreams_comm
+    if not do_track.downstreams_comm:
+        do_track.downstreams_comm = comm_rev_ranges(prev_dn, now_dn, repo)
+    comm = do_track.downstreams_comm
 
     # exclude followup backports that invalid due to the changed downstream
     exclude_ranges = ['%s..%s' % (prev_dn[0], comm[0]),
@@ -229,8 +229,8 @@ def track(title, repo, upstream, downstream, downstream_prefix,
                 f[1] = hash_by_title(f[0].title, r, repo)
 
     return pres
-track.upstreams_comm = None
-track.downstreams_comm = None
+do_track.upstreams_comm = None
+do_track.downstreams_comm = None
 
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
@@ -313,7 +313,7 @@ def main():
     track_results.results = results
 
     for t in titles:
-        results[t] = track(t, repo, upstream, downstream,
+        results[t] = do_track(t, repo, upstream, downstream,
                 args.downstream_prefix, args.all_files, prev_res)
         r = results[t]
         if not args.followups_only or (r.followup_fixes or r.followup_mentions):
