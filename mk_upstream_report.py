@@ -47,7 +47,7 @@ class Report:
     def __str__(self):
         lines = ['%s' % self.commit]
         for f in self.fixes:
-            lines.append('# has \'Fixes:\' for \'%s\'' % f)
+            lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
             lines.append('# mentions \'%s\'' % m)
         return '\n'.join(lines)
@@ -91,10 +91,10 @@ def main():
 
     # Print the report
     print("""
-We found below %d commits in the '%s (upstream)' are mentioning or has 'Fixes:'
-tag for commits in the '%s (downstream)' but not merged in the 'downstream'.
-Could you please review if those need to be merged in the upstream?
-""" % (len(to_report),
+We found below %d commits in the '%s (upstream)' are fixing or mentioning
+commits in the '%s (downstream)' but not merged in the 'downstream'.  Could you
+please review if those need to be merged in the upstream?  """ %
+(len(to_report),
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
 
     print('\n')
