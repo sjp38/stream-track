@@ -83,7 +83,7 @@ def main():
             report = to_report[f.gitref]
             report.fixes.append(t)
 
-        for m in mentions_unmerged:
+        for f in mentions_unmerged:
             if not f.gitref in to_report:
                 to_report[f.gitref] = Report(f)
             report = to_report[f.gitref]
