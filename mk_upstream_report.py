@@ -66,18 +66,6 @@ def main():
     with open(args.output, 'r') as f:
         prev_res = track_results.parse_track_results(f.readlines(), args.repo)
 
-    print("""
-We found below commits in the '%s (upstream)' are mentioning or has 'Fixes:'
-tag for commits in the '%s (downstream)' but not merged in the 'downstream'.
-Could you please review if those need to be merged in the upstream?
-""" % ('..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
-
-    print('\n')
-
-    for ref in prev_res.hashids:
-        print('# %s: %s' % (ref, prev_res.hashids[ref]))
-    print('\n\n')
-
     to_report = {}
     for t in prev_res.results:
         res = prev_res.results[t]
@@ -100,6 +88,20 @@ Could you please review if those need to be merged in the upstream?
                 to_report[f.gitref] = Report(f)
             report = to_report[f.gitref]
             report.mentions.append(t)
+
+    # Print the report
+    print("""
+We found below %d commits in the '%s (upstream)' are mentioning or has 'Fixes:'
+tag for commits in the '%s (downstream)' but not merged in the 'downstream'.
+Could you please review if those need to be merged in the upstream?
+""" % (len(to_report),
+    '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
+
+    print('\n')
+
+    for ref in prev_res.hashids:
+        print('# %s: %s' % (ref, prev_res.hashids[ref]))
+    print('\n\n')
 
     for report in to_report.values():
         print(report)
