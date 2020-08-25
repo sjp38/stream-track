@@ -83,6 +83,7 @@ def hash_by_ref(reference, repo):
     cmd = 'git --git-dir=%s/.git rev-parse %s' % (repo, reference)
     hashid = subprocess.check_output(cmd, shell=True).decode().strip()
     hash_by_ref.cache[repo][reference] = hashid
+    return hashid
 hash_by_ref.cache = {}
 
 def pr_streams(upstream, downstream, repo):
