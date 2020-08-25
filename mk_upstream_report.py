@@ -91,18 +91,21 @@ def main():
 
     # Print the report
     print("""
-We found below %d commits in the '%s (upstream)' are fixing or mentioning
-commits in the '%s (downstream)' but not merged in the 'downstream'.  Could you
-please review if those need to be merged in the upstream?  """ %
+Using an automated tool[1], we found below %d commits in the '%s (upstream)'
+are fixing or mentioning commits in the '%s (downstream)' but not merged in the
+'downstream'.  Could you please review if those need to be merged in the
+upstream?
+
+[1] https://github.com/sjp38/stream-track
+""" %
 (len(to_report),
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
 
+    for ref in prev_res.hashids:
+        print('    # %s: %s' % (ref, prev_res.hashids[ref]))
     print('\n')
 
-    for ref in prev_res.hashids:
-        print('# %s: %s' % (ref, prev_res.hashids[ref]))
-    print('\n\n')
-
+    # TODO: Sort by the commit date (old first), fixes first
     for report in to_report.values():
         print(report)
         print()
