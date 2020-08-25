@@ -34,6 +34,24 @@ Thanks,
 SeongJae Park
 """
 
+class Report:
+    commit = None
+    fixes = None
+    mentions = None
+
+    def __init__(self, commit):
+        self.commit = commit
+        self.fixes = []
+        self.mentions = []
+
+    def __str__(self):
+        lines = ['%s' % self.commit]
+        for f in self.fixes:
+            lines.append('# has \'Fixes:\' for \'%s\'' % f)
+        for m in self.mentions:
+            lines.append('# mentions \'%s\'' % m)
+        return '\n'.join(lines)
+
 def set_argparser(parser):
     parser.add_argument('output', metavar='<file>',
             help='file containing output of chk-followups.py')
@@ -72,13 +90,19 @@ Could you please review if those need to be merged in the upstream?
             continue
 
         for f in fixes_unmerged:
-            print(f)
-            print('# has \'Fixes:\' for \'%s\'' % t)
+            if not f.gitref in to_report:
+                to_report[f.gitref] = Report(f)
+            report = to_report[f.gitref]
+            report.fixes.append(t)
 
         for m in mentions_unmerged:
-            print(f)
-            print('# mentions \'%s\'' % t)
+            if not f.gitref in to_report:
+                to_report[f.gitref] = Report(f)
+            report = to_report[f.gitref]
+            report.mentions.append(t)
 
+    for report in to_report.values():
+        print(report)
         print()
 
 if __name__ == '__main__':
