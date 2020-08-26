@@ -98,8 +98,8 @@ def main():
     print("""
 Using an automated tool[1], we found below %d commits in the '%s (upstream)'
 are fixing or mentioning commits in the '%s (downstream)' but not merged in the
-'downstream'.  Could you please review if those need to be merged in the
-upstream?
+'downstream'.  The commits are sorted by the commit date.  Could you please
+review if those need to be merged in the upstream?
 
 [1] https://github.com/sjp38/stream-track
 """ %
@@ -111,7 +111,7 @@ upstream?
     print('\n')
 
     # TODO: Sort by the commit date (old first), fixes first
-    for report in to_report.values():
+    for report in sorted(to_report.values(), key=lambda x: x.commit_date):
         print(report)
         print()
 
