@@ -7,6 +7,12 @@ import git
 import track_results
 
 """
+TODO
+
+- Check if the upstream fixes cleanly applicable
+- Format patches
+- Add recipients
+
 Hello,
 
 
