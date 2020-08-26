@@ -110,10 +110,14 @@ review if those need to be merged in the upstream?
         print('    # %s: %s' % (ref, prev_res.hashids[ref]))
     print('\n')
 
-    # TODO: Sort by the commit date (old first), fixes first
-    for report in sorted(to_report.values(), key=lambda x: x.commit_date):
-        print(report)
-        print()
+    to_report_fixes = [x for x in to_report.values() if x.fixes]
+    to_report_mentions = [x for x in to_report.values() if not x.fixes]
+    to_report = [to_report_fixes, to_report_mentions]
+
+    for reports in to_report:
+        for report in sorted(reports, key=lambda x: x.commit_date):
+            print(report)
+            print()
 
 if __name__ == '__main__':
     main()
