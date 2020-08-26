@@ -122,13 +122,13 @@ def main():
     # Print the report
     print("""
 We found below %d commits in the '%s (upstream)' seems fixing or mentioning
-commits in the '%s (downstream)' but not merged in the 'downstream'.  Could you
-please review if those need to be merged in the upstream?
+commits in the '%s (downstream)' but are not merged in the 'downstream' yet.
+Could you please review if those need to be merged in?
 
 The commits are grouped as 'fixes cleanly applicable', 'fixes not cleanly
 applicable (need manual backporting to be applied)', 'mentions cleanly
 applicable', and 'mentions not cleanly applicable'.  Also, the commits in each
-group are sorted by the commit dates (old one first).
+group are sorted by the commit dates (oldest first).
 
 Both the finding of the commits and the writeup of this report is automatically
 done by a little script[1].  I'm going to run the tool and post this kind of
