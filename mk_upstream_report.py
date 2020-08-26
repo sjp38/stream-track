@@ -63,10 +63,6 @@ class Report:
             lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
             lines.append('# mentions \'%s\'' % m)
-        if self.applicable:
-            lines.append('# cleanly applicable')
-        else:
-            lines.append('# not cleanly applicable')
         return '\n'.join(lines)
 
 def set_argparser(parser):
@@ -141,15 +137,45 @@ The commits are sorted by their commit date (old one first).
         print('    # %s: %s' % (ref, prev_res.hashids[ref]))
     print('\n')
 
-    to_report_fixes = [x for x in to_report.values() if x.fixes]
-    to_report_mentions = [x for x in to_report.values() if not x.fixes]
-    to_report = [to_report_fixes, to_report_mentions]
-
-    for reports in to_report:
-        for report in sorted(reports, key=lambda x: x.commit_date):
-            print(report)
-            print()
+    print('Fixes cleanly applicable')
+    print('------------------------')
+    print()
+    for r in sorted(
+            [r for r in to_report.values() if r.fixes and r.applicable],
+            key=lambda r: r.commit_date):
+        print(r)
         print()
+    print('\n')
+
+    print('Fixes not cleanly applicable')
+    print('----------------------------')
+    print()
+    for r in sorted(
+            [r for r in to_report.values() if r.fixes and not r.applicable],
+            key=lambda r: r.commit_date):
+        print(r)
+        print()
+    print('\n')
+
+    print('Mentions cleanly applicable')
+    print('---------------------------')
+    print()
+    for r in sorted(
+            [r for r in to_report.values() if not r.fixes and r.applicable],
+            key=lambda r: r.commit_date):
+        print(r)
+        print()
+    print('\n')
+
+    print('Mentions not cleanly applicable')
+    print('-------------------------------')
+    print()
+    for r in sorted(
+            [r for r in to_report.values() if not r.fixes and not r.applicable],
+            key=lambda r: r.commit_date):
+        print(r)
+        print()
+    print('\n')
 
 if __name__ == '__main__':
     main()
