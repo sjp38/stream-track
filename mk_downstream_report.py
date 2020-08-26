@@ -121,16 +121,26 @@ def main():
 
     # Print the report
     print("""
-Using a little tool[1], we found below %d commits in the '%s (upstream)'
-are fixing or mentioning commits in the '%s (downstream)'
-but not merged in the 'downstream'.  Could you please review if those need to
-be merged in the upstream?
+We found below %d commits in the '%s (upstream)' seems fixing or mentioning
+commits in the '%s (downstream)' but not merged in the 'downstream'.  Could you
+please review if those need to be merged in the upstream?
 
-The commits are sorted by their commit date (old one first).
+The commits are grouped as 'fixes cleanly applicable', 'fixes not cleanly
+applicable (need manual backporting to be applied)', 'mentions cleanly
+applicable', and 'mentions not cleanly applicable'.  Also, the commits in each
+group are sorted by the commit dates (old one first).
+
+Both the finding of the commits and the writeup of this report is automatically
+done by a little script[1].  I'm going to run the tool and post this kind of
+report every couple of weeks or every month.  Any comment (e.g., regarding
+posting period, new features request, bug report, ...) is welcome.
+
+Especially, if you find some commits that don't need to be merged in the
+downstream, please let me know so that I can mark those as unnecessary and
+don't bother you again.
 
 [1] https://github.com/sjp38/stream-track
-""" %
-(len(to_report),
+""" % (len(to_report),
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
 
     for ref in prev_res.hashids:
