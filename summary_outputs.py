@@ -5,6 +5,7 @@ import datetime
 import os
 import subprocess
 
+import git
 import track_results
 
 class Summary:
@@ -43,17 +44,6 @@ def parse_summary(lines):
 
     return summary
 
-def commit_date(hashid, repo):
-    cmd = 'git --git-dir=%s/.git log %s^..%s' % (repo, hashid, hashid)
-    cmd += ' --pretty="%cd" --date=format:\'%Y-%m-%d\' | head -n 1'
-    date_str = subprocess.check_output(cmd, shell=True).decode().strip()
-    try:
-        return datetime.datetime.strptime(date_str, '%Y-%m-%d')
-    except ValueError:
-        print('Could not get the commit date of %s' % hashid)
-        print('Please check whether \'--repo\' is properly provided.')
-        exit(1)
-
 def fmt_date_range(start, end):
     return '%s..%s' % (start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
 
@@ -65,10 +55,10 @@ def parse_pr_summary(prefix, output_lines, repo):
     if not upstream or not downstream or not hashes:
         return
 
-    up = fmt_date_range(commit_date(hashes[upstream[0]], repo),
-            commit_date(hashes[upstream[1]], repo))
-    dn = fmt_date_range(commit_date(hashes[downstream[0]], repo),
-            commit_date(hashes[downstream[1]], repo))
+    up = fmt_date_range(git.commit_date(hashes[upstream[0]], repo),
+            git.commit_date(hashes[upstream[1]], repo))
+    dn = fmt_date_range(git.commit_date(hashes[downstream[0]], repo),
+            git.commit_date(hashes[downstream[1]], repo))
 
     summary = parse_summary(output_lines[-6:])
     if not summary:
