@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 
+import git
 import track_results
 
 """
@@ -36,16 +38,19 @@ SeongJae Park
 
 class Report:
     commit = None
+    commit_date = None
     fixes = None
     mentions = None
 
-    def __init__(self, commit):
+    def __init__(self, commit, repo):
         self.commit = commit
+        self.commit_date = git.commit_date(commit.commit_hash, repo)
         self.fixes = []
         self.mentions = []
 
     def __str__(self):
-        lines = ['%s' % self.commit]
+        lines = ['%s %s' % (
+            self.commit_date.strftime('%Y-%m-%d'),self.commit)]
         for f in self.fixes:
             lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
@@ -79,13 +84,13 @@ def main():
 
         for f in fixes_unmerged:
             if not f.gitref in to_report:
-                to_report[f.gitref] = Report(f)
+                to_report[f.gitref] = Report(f, args.repo)
             report = to_report[f.gitref]
             report.fixes.append(t)
 
         for f in mentions_unmerged:
             if not f.gitref in to_report:
-                to_report[f.gitref] = Report(f)
+                to_report[f.gitref] = Report(f, args.repo)
             report = to_report[f.gitref]
             report.mentions.append(t)
 
