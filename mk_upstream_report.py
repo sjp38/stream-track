@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import os
 
 import git
 import track_results
@@ -24,7 +25,7 @@ Could you please review if those need to be merged in the upstream?
 <commit date> <hash id> <title>
 # has 'Fixes:' for <hash id> <title>.
 # has mentions for <hash id> <title>.
-# This can be cleanly cherry-picked on the downstream.
+# This is cleanly applicable on the downstream.
 # This cannot be cleanly cherry-picked on the downstream.
 
 ...
@@ -47,6 +48,7 @@ class Report:
     commit_date = None
     fixes = None
     mentions = None
+    applicable = None
 
     def __init__(self, commit, repo):
         self.commit = commit
@@ -61,6 +63,10 @@ class Report:
             lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
             lines.append('# mentions \'%s\'' % m)
+        if self.applicable:
+            lines.append('# cleanly applicable')
+        else:
+            lines.append('# not cleanly applicable')
         return '\n'.join(lines)
 
 def set_argparser(parser):
@@ -100,12 +106,31 @@ def main():
             report = to_report[f.gitref]
             report.mentions.append(t)
 
+    # Check if the commits are cleanly applicable
+    cwd = os.getcwd()
+    os.chdir(args.repo)
+    original_head = git.head_hashid()
+
+    downstream_end = prev_res.downstream[-1]
+    git.reset_hard(downstream_end)
+
+    for report in to_report.values():
+        if git.applicable(report.commit.commit_hash, downstream_end):
+            report.applicable = True
+        else:
+            report.applicable = False
+
+    git.reset_hard(original_head)
+    os.chdir(cwd)
+
     # Print the report
     print("""
-Using an automated tool[1], we found below %d commits in the '%s (upstream)'
-are fixing or mentioning commits in the '%s (downstream)' but not merged in the
-'downstream'.  The commits are sorted by the commit date.  Could you please
-review if those need to be merged in the upstream?
+Using a little tool[1], we found below %d commits in the '%s (upstream)'
+are fixing or mentioning commits in the '%s (downstream)'
+but not merged in the 'downstream'.  Could you please review if those need to
+be merged in the upstream?
+
+The commits are sorted by their commit date (old one first).
 
 [1] https://github.com/sjp38/stream-track
 """ %
@@ -124,6 +149,7 @@ review if those need to be merged in the upstream?
         for report in sorted(reports, key=lambda x: x.commit_date):
             print(report)
             print()
+        print()
 
 if __name__ == '__main__':
     main()
