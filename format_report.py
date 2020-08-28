@@ -48,6 +48,8 @@ def set_argparser(parser):
             help='Email subject')
     parser.add_argument('--subject_prefix', metavar='<prefix>',
             help='Email subject prefix')
+    parser.add_argument('--sender', metavar='<name>',
+            help='sender name')
     parser.add_argument('--to', metavar='<email>', nargs='+',
             help='Email To:')
     parser.add_argument('--cc', metavar='<email>', nargs='+',
@@ -155,6 +157,9 @@ don't bother you again.
 [1] https://github.com/sjp38/stream-track
 """ % (len(to_report),
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
+
+    if args.sender:
+        print('\n\nTHanks,\n%s' % args.sender)
 
     for ref in prev_res.hashids:
         print('    # %s: %s' % (ref, prev_res.hashids[ref]))
