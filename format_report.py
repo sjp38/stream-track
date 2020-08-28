@@ -46,6 +46,8 @@ def set_argparser(parser):
             help='path to the tracking git repo')
     parser.add_argument('--subject', metavar='<subject>',
             help='Email subject')
+    parser.add_argument('--subject_prefix', metavar='<prefix>',
+            help='Email subject prefix')
     parser.add_argument('--to', metavar='<email>', nargs='+',
             help='Email To:')
     parser.add_argument('--cc', metavar='<email>', nargs='+',
@@ -117,7 +119,10 @@ def main():
     if args.subject:
         print('Subject: %s' % args.subject)
     else:
-        print('Subject: Found %d commits that might missed' % len(to_report))
+        subject = 'Found %d commits that might missed' % len(to_report)
+        if args.subject_prefix:
+            subject = '[%s] %s' % (args.subject_prefix, subject)
+        print('Subject: %s' % subject)
 
     print("""
 Hello,
