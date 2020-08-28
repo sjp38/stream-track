@@ -30,9 +30,9 @@ class Report:
         self.mentions = []
 
     def __str__(self):
-        lines = ['%s %s' % (
-            self.commit_date.strftime('%Y-%m-%d'),self.commit)]
-        lines.append('# author: %s' % self.author)
+        lines = ['%s' % self.commit]
+        lines.append('# commit date: %s, author: %s' %
+            (self.commit_date.strftime('%Y-%m-%d'), self.author))
         for f in self.fixes:
             lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
