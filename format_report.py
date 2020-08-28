@@ -132,6 +132,12 @@ We found below %d commits in the '%s (upstream)' seems fixing or mentioning
 commits in the '%s (downstream)' but are not merged in the 'downstream' yet.
 Could you please review if those need to be merged in?
 
+A commit is considered as fix of another if the complete 'Fixed:' tag is in the
+commit message.  If the tag is not found but the commit message contains the
+title or the hash id of the other commit, it is considered mentioning it.  So,
+the 'mentions' might have many false positives, but it could cover the typos (I
+found such cases before).
+
 The commits are grouped as 'fixes cleanly applicable', 'fixes not cleanly
 applicable (need manual backporting to be applied)', 'mentions cleanly
 applicable', and 'mentions not cleanly applicable'.  Also, the commits in each
