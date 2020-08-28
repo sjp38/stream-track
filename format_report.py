@@ -46,11 +46,11 @@ def set_argparser(parser):
             help='path to the tracking git repo')
     parser.add_argument('--subject', metavar='<subject>',
             help='Email subject')
-    parser.add_argument('--to', metavar='<email>',
+    parser.add_argument('--to', metavar='<email>', nargs='+',
             help='Email To:')
-    parser.add_argument('--cc', metavar='<email>',
+    parser.add_argument('--cc', metavar='<email>', nargs='+',
             help='Email Cc:')
-    parser.add_argument('--bcc', metavar='<email>',
+    parser.add_argument('--bcc', metavar='<email>', nargs='+',
             help='Email Bcc:')
 
 def main():
@@ -109,11 +109,11 @@ def main():
 
     print('To: %s' % ', '.join(authors))
     if args.to:
-        print('To: %s' % args.to)
+        print('To: %s' % ', '.join(args.to))
     if args.cc:
-        print('Cc: %s' % args.cc)
+        print('Cc: %s' % ', '.join(args.cc))
     if args.bcc:
-        print('Bcc: %s' % args.bcc)
+        print('Bcc: %s' % ', '.join(args.bcc))
     if args.subject:
         print('Subject: %s' % args.subject)
     else:
