@@ -94,6 +94,13 @@ def main():
     os.chdir(cwd)
 
     # Print the report
+
+    authors = {}
+    for r in to_report.values():
+        authors[r.author] = True
+
+    print('To: %s' % ', '.join(authors))
+
     print("""
 We found below %d commits in the '%s (upstream)' seems fixing or mentioning
 commits in the '%s (downstream)' but are not merged in the 'downstream' yet.
