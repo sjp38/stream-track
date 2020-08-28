@@ -120,6 +120,9 @@ def main():
         print('Subject: Found %d commits that might missed' % len(to_report))
 
     print("""
+Hello,
+
+
 We found below %d commits in the '%s (upstream)' seems fixing or mentioning
 commits in the '%s (downstream)' but are not merged in the 'downstream' yet.
 Could you please review if those need to be merged in?
