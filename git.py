@@ -15,6 +15,11 @@ def commit_date(hashid, repo):
         print('Please check whether \'--repo\' is properly provided.')
         exit(1)
 
+def author(hashid, repo):
+    cmd = 'git --git-dir=%s/.git log %s^..%s' % (repo, hashid, hashid)
+    cmd += ' --pretty="%aN <%aE>" | head -n 1'
+    return subprocess.check_output(cmd, shell=True).decode().strip()
+
 def head_hashid(repo=None):
     git_cmd = 'git '
     if repo:

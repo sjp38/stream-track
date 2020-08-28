@@ -17,6 +17,7 @@ TODO
 class Report:
     commit = None
     commit_date = None
+    author = None
     fixes = None
     mentions = None
     applicable = None
@@ -24,12 +25,14 @@ class Report:
     def __init__(self, commit, repo):
         self.commit = commit
         self.commit_date = git.commit_date(commit.commit_hash, repo)
+        self.author = git.author(commit.commit_hash, repo)
         self.fixes = []
         self.mentions = []
 
     def __str__(self):
         lines = ['%s %s' % (
             self.commit_date.strftime('%Y-%m-%d'),self.commit)]
+        lines.append('# author: %s' % self.author)
         for f in self.fixes:
             lines.append('# fixes \'%s\'' % f)
         for m in self.mentions:
