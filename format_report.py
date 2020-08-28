@@ -159,10 +159,10 @@ don't bother you again.
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
 
     if args.sender:
-        print('\n\nTHanks,\n%s' % args.sender)
+        print('\nThanks,\n%s\n\n' % args.sender)
 
     for ref in prev_res.hashids:
-        print('    # %s: %s' % (ref, prev_res.hashids[ref]))
+        print('# %s: %s' % (ref, prev_res.hashids[ref]))
     print('\n')
 
     print('Fixes cleanly applicable')
