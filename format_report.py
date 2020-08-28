@@ -44,6 +44,14 @@ def set_argparser(parser):
             help='file containing output of chk-followups.py')
     parser.add_argument('--repo', metavar='<path>', default='./',
             help='path to the tracking git repo')
+    parser.add_argument('--subject', metavar='<subject>',
+            help='Email subject')
+    parser.add_argument('--to', metavar='<email>',
+            help='Email To:')
+    parser.add_argument('--cc', metavar='<email>',
+            help='Email Cc:')
+    parser.add_argument('--bcc', metavar='<email>',
+            help='Email Bcc:')
 
 def main():
     parser = argparse.ArgumentParser()
@@ -100,6 +108,16 @@ def main():
         authors[r.author] = True
 
     print('To: %s' % ', '.join(authors))
+    if args.to:
+        print('To: %s' % args.to)
+    if args.cc:
+        print('Cc: %s' % args.cc)
+    if args.bcc:
+        print('Bcc: %s' % args.bcc)
+    if args.subject:
+        print('Subject: %s' % args.subject)
+    else:
+        print('Subject: Found %d commits that might missed' % len(to_report))
 
     print("""
 We found below %d commits in the '%s (upstream)' seems fixing or mentioning
