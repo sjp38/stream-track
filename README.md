@@ -129,17 +129,16 @@ Formatting Report
 =================
 
 Every information is in the 'chk-followup.py' output.  However, the format is
-mainly designed for the tool runner.  The project maintainer, who should review
-the output and apply some really important followups on the project, might be
-different people.  The maintainer could even work in different company or
-organization. From their perspective, the format could seems verbose, not well
-unorganized, and require manual repetitive instrumentations.
+mainly designed for the tool runner.  The project maintainers, who should
+review the output and apply some followups on the project, might be different
+people.  The maintainers could even work in different company or organization.
+From their perspective, the format could seems verbose, not well organized, and
+require manual repetitive instrumentations.
 
 For such cases, 'format_report.py' receives the 'chk-followup.py' output and
 reformat it as a report for the maintainer.  The report is in 'git send-email'
-applicable simplified mail format and it sets the recipients as necessary.  So,
-you can directly send it to the maintainer and the relevant recipients via 'git
-send-email'.
+applicable simplified mail format.  So, the user can directly send it to the
+maintainer via 'git send-email'.
 
 You could refer to the report for 5.4.y linux stable releases, generated and
 posted in the way:
