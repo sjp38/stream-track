@@ -142,8 +142,7 @@ maintainer via 'git send-email'.
 
 You could refer to the report for 5.4.y linux stable releases, generated and
 posted in the way:
-
-    https://lore.kernel.org/stable/20200828152745.10819-1-sjpark@amazon.com/
+https://lore.kernel.org/stable/20200828152745.10819-1-sjpark@amazon.com/
 
 Similar Tools
 =============
