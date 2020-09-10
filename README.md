@@ -99,6 +99,53 @@ shortly if we can use the previous tracking results.  You can let the tool to
 know the previous tracking results using '--prev_results' option of
 'chk-followups.py'.
 
+Ignoring Specific Followups
+===========================
+
+Some followups could be already merged in the downstream in different name, or
+maybe you could manually review the followup and decided to don't merge that,
+because it has only trivial fix.  For such cases, you can write down some rules
+for the followups that need to be ignored in a file and give the file to
+'chk-followups.py' using '--ignore_rule' option.
+
+The rule is constructed with a number of commits.  If the first commit is in
+the given downstream range, 'chk-followups' think the other commits of the rule
+is already merged in the downstream.  In other words, the other commits are
+ignored.  Suppose upstream commit A is fixed by upstream commit B in the
+upstream and those are backported in downstream as A' and B'.  If A' has a
+title same to A but B' has a title different from that of B, 'chk-followups'
+will say upstream commit B is not merged in the downstream yet.  However, if
+you provide a rule (B', B), the tool will say B is already merged in.  Note
+that B' could be A' in some case.  Or, if you know B is not merged in
+downstream but you think it is not necessary (maybe because it fixes only
+trivial problem), you can provide a rule (A', B).
+
+In the file, the commits should be placed in each line in form of:
+
+    <hash id> [whatever]
+
+You can put some additional info of the commit, for example, the subject of the
+commit, in the [whatever] field.
+
+If there are multiple rules, those should be separated with a blank line.
+Also, lines starting with '#' are comments and thus ignored.  For example,
+below rules are available:
+
+    # the root cause commit backported with the fixes sqaushed in it
+    1234567890abcd ("Implement feature A")
+    234567890abcd1 ("Fix feature A implementation")
+    34567890abcd12 ("Fix yet another bug of feature A")
+
+    # multiple fixes squashed in one commit and back-ported
+    1234567890abcd ("Fix A and B")
+    234567890abcd1 ("Fix A")
+    34567890abcd12 ("Fix B")
+
+    # trivial fixes that don't need to be merged in the downstream
+    4567890abcd123 ("Implement feature B")
+    567890abcd1234 ("Fix typo in feature B documentation")
+    67890abcd12345 ("Fix trivial bug in feature B")
+
 Summarizing Repeated Tracking Results
 =====================================
 
