@@ -89,12 +89,13 @@ def main():
             report.mentions.append(t)
 
     # Check if the commits are cleanly applicable
-    cwd = os.getcwd()
-    os.chdir(args.repo)
-    original_head = git.head_hashid()
+    if len(to_report) > 0:
+        cwd = os.getcwd()
+        os.chdir(args.repo)
+        original_head = git.head_hashid()
 
-    downstream_end = prev_res.downstream[-1]
-    git.reset_hard(downstream_end)
+        downstream_end = prev_res.downstream[-1]
+        git.reset_hard(downstream_end)
 
     for report in to_report.values():
         if git.applicable(report.commit.commit_hash, downstream_end):
@@ -102,8 +103,9 @@ def main():
         else:
             report.applicable = False
 
-    git.reset_hard(original_head)
-    os.chdir(cwd)
+    if len(to_report) > 0:
+        git.reset_hard(original_head)
+        os.chdir(cwd)
 
     # Print the report
 
