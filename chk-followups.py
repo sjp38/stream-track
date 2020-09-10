@@ -277,6 +277,25 @@ def set_argparser(parser):
             help='commits having titles with the prefix are downstream only')
     parser.description='track status of followup commits in the upstream.'
 
+def fill_title_hash_maps(downstream, repo):
+    if not downstream in title_hash_maps:
+        title_hash_maps[downstream] = {}
+
+    cmd = 'git --git-dir=%s/.git log --pretty="%%h %%s" --abbrev=12 %s' % (
+            repo, downstream)
+    try:
+        results = subprocess.check_output(cmd, shell=True).decode()
+        titles = []
+        for r in results.strip().split('\n'):
+            r = r.strip()
+            hashid = r[:12]
+            title = r[13:]
+            title_hash_maps[downstream][title] = hashid
+            titles.append(title)
+    except:
+        print('failed getting the downstream commits')
+        exit(1)
+
 def main():
     parser = argparse.ArgumentParser()
     set_argparser(parser)
@@ -310,23 +329,8 @@ def main():
 
     if not args.titles:
         print('# track for all downstream commits')
-        if not downstream in title_hash_maps:
-            title_hash_maps[downstream] = {}
-
-        cmd = 'git --git-dir=%s/.git log --pretty="%%h %%s" --abbrev=12 %s' % (
-                repo, downstream)
-        try:
-            results = subprocess.check_output(cmd, shell=True).decode()
-            titles = []
-            for r in results.strip().split('\n'):
-                r = r.strip()
-                hashid = r[:12]
-                title = r[13:]
-                title_hash_maps[downstream][title] = hashid
-                titles.append(title)
-        except:
-            print('failed getting the downstream commits')
-            exit(1)
+        fill_title_hash_maps(downstream, repo)
+        titles = title_hash_maps[downstream].keys()
     else:
         titles = args.titles.strip().split('\n')
 
