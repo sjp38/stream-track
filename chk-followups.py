@@ -338,6 +338,14 @@ def main():
     if args.ignore_rule:
         ignore_rules = read_ignore_rules(args.ignore_rule)
 
+    ignore_hashids = []
+    if len(ignore_rules) > 0:
+        if not args.titles:
+            fill_title_hash_maps(downstream, repo)
+        for trigger in ignore_rules:
+            if trigger in title_hash_maps[downstream].values():
+                ignore_hashids += ignore_rules[trigger]
+
     track_results = TrackResults()
     results = {}
     track_results.results = results
@@ -346,21 +354,20 @@ def main():
         results[t] = do_track(t, repo, upstream, downstream,
                 args.downstream_prefix, args.all_files, prev_res)
         r = results[t]
-        hashid = hash_by_title(t, downstream, repo)
-        if hashid in ignore_rules:
-            new_followup_fixes = []
-            for f in r.followup_fixes:
-                if f[0].commit_hash[:12] in ignore_rules[hashid]:
-                    continue
-                new_followup_fixes.append(f)
-            r.followup_fixes = new_followup_fixes
 
-            new_followup_mentions = []
-            for m in r.followup_mentions:
-                if m[0].commit_hash[:12] in ignore_rules[hashid]:
-                    continue
-                new_followup_mentions.append(m)
-            r.followup_mentions = new_followup_mentions
+        new_followup_fixes = []
+        for f in r.followup_fixes:
+            if f[0].commit_hash[:12] in ignore_hashids:
+                continue
+            new_followup_fixes.append(f)
+        r.followup_fixes = new_followup_fixes
+
+        new_followup_mentions = []
+        for m in r.followup_mentions:
+            if m[0].commit_hash[:12] in ignore_hashids:
+                continue
+            new_followup_mentions.append(m)
+        r.followup_mentions = new_followup_mentions
 
         if not args.followups_only or (r.followup_fixes or r.followup_mentions):
             print('%s #' % t, results[t])
