@@ -232,6 +232,26 @@ def do_track(title, repo, upstream, downstream, downstream_prefix,
 do_track.upstreams_comm = None
 do_track.downstreams_comm = None
 
+def read_ignore_rules(rules_file):
+    rules = {}
+    with open(rules_file, 'r') as f:
+        to_ignore = None
+        for line in f:
+            if line.startswith('#'):
+                continue
+            line = line.strip()
+            if line == '':
+                to_ignore = None
+                continue
+
+            hashid = line.split()[0]
+            if to_ignore == None:
+                to_ignore = []
+                rules[hashid] = to_ignore
+            else:
+                to_ignore.append(hashid)
+    return rules
+
 def set_argparser(parser):
     parser.add_argument('--repo', metavar='<path>', default='./',
             help='path to the kernel source git repo')
@@ -241,6 +261,8 @@ def set_argparser(parser):
             help='the downstream history')
     parser.add_argument('--titles', metavar='<title>',
             help='the titles of the downstream commits to track for')
+    parser.add_argument('--ignore_rule', metavar='<file>',
+            help='ignore specific follower commits')
     parser.add_argument('--prev_results', metavar='<file>',
             help='use the previous result for speedup of the check')
 
@@ -308,6 +330,10 @@ def main():
     else:
         titles = args.titles.strip().split('\n')
 
+    ignore_rules = {}
+    if args.ignore_rule:
+        ignore_rules = read_ignore_rules(args.ignore_rule)
+
     track_results = TrackResults()
     results = {}
     track_results.results = results
@@ -316,6 +342,22 @@ def main():
         results[t] = do_track(t, repo, upstream, downstream,
                 args.downstream_prefix, args.all_files, prev_res)
         r = results[t]
+        hashid = hash_by_title(t, downstream, repo)
+        if hashid in ignore_rules:
+            new_followup_fixes = []
+            for f in r.followup_fixes:
+                if f[0].commit_hash[:12] in ignore_rules[hashid]:
+                    continue
+                new_followup_fixes.append(f)
+            r.followup_fixes = new_followup_fixes
+
+            new_followup_mentions = []
+            for m in r.followup_mentions:
+                if m[0].commit_hash[:12] in ignore_rules[hashid]:
+                    continue
+                new_followup_mentions.append(m)
+            r.followup_mentions = new_followup_mentions
+
         if not args.followups_only or (r.followup_fixes or r.followup_mentions):
             print('%s #' % t, results[t])
 
