@@ -164,7 +164,7 @@ don't bother you again.
     '..'.join(prev_res.upstream), '..'.join(prev_res.downstream)))
 
     if args.sender:
-        print('\nThanks,\n%s\n\n' % args.sender.split()[0])
+        print('\nThanks,\n%s\n\n' % ' '.join(args.sender.split()[:-1]))
 
     for ref in prev_res.hashids:
         print('# %s: %s' % (ref, prev_res.hashids[ref]))
