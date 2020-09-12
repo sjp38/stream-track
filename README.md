@@ -1,4 +1,4 @@
-This directory contains tools for finding upstream commits that fixes or
+This directory contains tools for finding upstream commits that fix or
 mentions specific downstream commits and checking whether the followup changes
 in the upstream are already in your downstream tree.
 
@@ -11,7 +11,7 @@ release[1] to ensure your kernel is safe.  But, you would also back-port some
 commits from v5.5.  Then, the periodic rebasing cannot ensure you have all
 necessary fixes in your kernel, as the fixes for v5.5 do not land on 5.4 stable
 releases.  This problem case is not only linux kernel specific but general to
-many open source projects.  The tools can help you finding such commits.
+many open source projects.  The tools can help you find such commits.
 
 [1] https://www.kernel.org/releases.html
 
@@ -21,7 +21,7 @@ Getting Started
 Let's suppose your kernel repo is at '$LINUX' and tracking the mainline
 tree with a remote name 'mainline'.  Your working branch is named 'hack' and
 based on v5.4.42.  Set 'PATH' to point this directory, move to your kernel
-source tree and run below command:
+source tree, and run the below command:
 
     $ chk-followups.py --repo $LINUX \
             --downstream v5.4.42..hack --upstream v5.5..mainline/master
@@ -40,11 +40,11 @@ with a combination of below tags:
  - no_followup: The upstream has no commits for the commit.
  - fixed: There are upstream commits fixing the commit.
  - mentioned: There are upstream commits mentioning the commit.  This could
-   include non-fixes (e.g., merge), but would be worth to check.
+   include non-fixes (e.g., merge), but would be worth checking.
  - unmerged: The followup commit is not merged in the downstream.
 
-In case of 'fixed' or 'mentioned', the followup commits will also be listed.
-For example:
+In the case of 'fixed' or 'mentioned', the followup commits will also be
+listed.  For example:
 
     x86/unwind/orc: Prevent unwinding before ORC initialization # fixed
       fixes merged
@@ -70,8 +70,8 @@ Because 'chk-followups.py' should read each commits in the downstream revision
 range and the upstream revision range, the runtime can be so long depending on
 the size of the streams.  For example, as of 2020-08-01, tracking 4.9 stable
 releases (v4.9..stable/linux-4.9.y as downstream and v4.10..linux/master as
-upstream) takes more than 10 hours on some machines.  We provide a number of
-ways to reduce the runtime.
+upstream) takes more than 10 hours on some machines.  We provide a few of ways
+to reduce the runtime.
 
 Dedicated Downstream-only Commit Prefix
 ---------------------------------------
@@ -79,11 +79,11 @@ Dedicated Downstream-only Commit Prefix
 For each of the downstream commits, the tool first checks whether the commit is
 backported from the upstream or not.  If not, it couldn't have followup and
 therefore the check is finished.  The time for this increases as the number of
-the upstream commits grows.  If the number of downstream-only commit is high in
-your case, most of the tracking time will be used for this check.
+the upstream commits grows.  If the number of the downstream-only commits is
+high in your case, most of the tracking time will be used for this check.
 
-For some reasons, some teams mark their downstream-only commits by adding a
-dedicated prefix such as team name or product name in fron of the commit
+For some reason, some teams mark their downstream-only commits by adding a
+dedicated prefix such as a team name or product name in front of the commit
 titles.  If you are also using this strategy, you could let the tool know this
 by using '--downstream_prefix' option of 'chk-followups.py'.  If it is given,
 the tool will be able to know if a commit is downstream-only by reading the
@@ -103,24 +103,24 @@ Ignoring Specific Followups
 ===========================
 
 Some followups could be already merged in the downstream in different name, or
-maybe you could manually review the followup and decided to don't merge that,
-because it has only trivial fix.  For such cases, you can write down some rules
-for the followups that need to be ignored in a file and give the file to
+maybe you could manually review the followup and decided to don't merge that
+because it has only a trivial fix.  For such cases, you can write down some
+rules for the followups that need to be ignored in a file and give the file to
 'chk-followups.py' using '--ignore_rule' option.
 
 The rule is constructed with a number of commits.  If the first commit is in
 the given downstream range, 'chk-followups' think the other commits of the rule
-is already merged in the downstream.  In other words, the other commits are
+are already merged in the downstream.  In other words, the other commits are
 ignored.  Suppose upstream commit A is fixed by upstream commit B in the
 upstream and those are backported in downstream as A' and B'.  If A' has a
 title same to A but B' has a title different from that of B, 'chk-followups'
 will say upstream commit B is not merged in the downstream yet.  However, if
 you provide a rule (B', B), the tool will say B is already merged in.  Note
-that B' could be A' in some case.  Or, if you know B is not merged in
-downstream but you think it is not necessary (maybe because it fixes only
+that B' could be A' in some cases.  Or, if you know B is not merged in
+downstream but you think it is not necessary (maybe because it fixes the only
 trivial problem), you can provide a rule (A', B).
 
-In the file, the commits should be placed in each line in form of:
+In the file, the commits should be placed in each line in the form of:
 
     <hash id> [whatever]
 
@@ -129,7 +129,7 @@ commit, in the [whatever] field.
 
 If there are multiple rules, those should be separated with a blank line.
 Also, lines starting with '#' are comments and thus ignored.  For example,
-below rules are available:
+the below rules are available:
 
     # the root cause commit backported with the fixes sqaushed in it
     1234567890abcd ("Implement feature A")
@@ -149,7 +149,7 @@ below rules are available:
 Summarizing Repeated Tracking Results
 =====================================
 
-Users would repeatedly do the tracking, as long as the upstream is live and
+Users would repeatedly do the tracking, as long as the upstream is alive and
 keep changing.  Because the purpose of the repeated tracking is only finding
 new followups, the 'chk-followups.py' outputs of each repeated runs would be
 too verbose.  You can get a summary of the outputs by storing the outputs in
@@ -178,9 +178,9 @@ Formatting Report
 Every information is in the 'chk-followup.py' output.  However, the format is
 mainly designed for the tool runner.  The project maintainers, who should
 review the output and apply some followups on the project, might be different
-people.  The maintainers could even work in different company or organization.
-From their perspective, the format could seems verbose, not well organized, and
-require manual repetitive instrumentations.
+people.  The maintainers could even work in a different company or
+organization.  From their perspective, the format could seem verbose, not well
+organized, and require manual repetitive instrumentations.
 
 For such cases, 'format_report.py' receives the 'chk-followup.py' output and
 reformat it as a report for the maintainer.  The report is in 'git send-email'
@@ -195,15 +195,15 @@ Similar Tools
 =============
 
 Because the problem case is quite general, there could be similar tools.  This
-section lists those and compare the tools in this directory (stream-track)
-against those, so that you can choose the right tool for your case.  The
+section lists those and compares the tools in this directory (stream-track)
+against those so that you can choose the right tool for your case.  The
 comparison is based on only my sheer understanding of the tools only, so there
 could be many wrong points.  If you find such things, please let me know.
 
 git-fixes
 ---------
 
-git-fixes[1] is a matured tool developed by Jörg Rödel.  The main job of the
+git-fixes[1] is a mature tool developed by Jörg Rödel.  The main job of the
 tool is quite similar to that of stream-track: "finding upstream fixes for
 backported commits."
 
@@ -213,8 +213,8 @@ git-fixes would be faster in general, though stream-track also provides some
 performance optimization tricks.  However, stream-track would be easier to be
 modified by users for special use cases of them.
 
-There are small differences in the usage and the fixes identification logic,
-but seems those of git-fixes is optimized for SUSE kernel.  Meanwhile,
+There are small differences in the usage and the fixes identification logic
+but seems those of git-fixes are optimized for SUSE kernel.  Meanwhile,
 stream-track is designed for kaos (this is not a typo, but reading it as chaos
 still works) rather than cleanly managed trees.
 
